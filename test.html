@@ -1,0 +1,37 @@
+<div>
+    <!-- Basic prefixes -->
+    <div class="sm:flex lg:grid xl:block 2xl:hidden"></div>
+
+    <!-- Multiple prefixes -->
+    <div class="sm:hover:flex lg:focus:grid dark:hover:text-white"></div>
+
+    <!-- Chained prefixes -->
+    <div class="sm:before:hover:text-blue-500 lg:after:focus:text-red-500"></div>
+
+    <!-- Invalid cases -->
+    <div class="sm::flex :hover:grid hover::text-white"></div>
+
+    <!-- Multiple classes -->
+    <div class="sm:p-2 sm:m-2 lg:p-4 lg:m-4"></div>
+
+    <!-- Mixed valid and invalid -->
+    <div class="sm:flex :invalid hover:valid: lg:grid"></div>
+
+    <!-- Arbitrary values -->
+    <div class="sm:w-[300px] lg:translate-x-[20px]"></div>
+
+    <!-- Complex combinations -->
+    <div class="sm:hover:focus:before:text-blue-500 lg:dark:focus:after:text-red-500"></div>
+
+    <!-- Edge cases with spaces -->
+    <div class="sm: flex lg:grid: xl :block"></div>
+
+    <!-- With className -->
+    <div className="sm:flex lg:grid hover:bg-blue-500"></div>
+
+    <!-- With template literals -->
+    <div class={`sm:flex ${dynamic} lg:grid hover:bg-blue-500`}></div>
+
+    <!-- With quotes -->
+    <div class='sm:flex "quoted" lg:grid'></div>
+</div> 
