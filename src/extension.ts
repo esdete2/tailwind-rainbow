@@ -1,7 +1,28 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { defaultTheme, PrefixConfig, TailwindPrefix } from './defaultTheme';
+import { defaultTheme, PrefixConfig, ThemeType, themes, TailwindPrefix } from './defaultTheme';
+
+function getActiveTheme(): Record<string, PrefixConfig> {
+	const config = vscode.workspace.getConfiguration('tailwindRainbow');
+	const selectedTheme = config.get<ThemeType>('theme', 'default');
+	const userPrefixes = config.get<Record<string, Partial<PrefixConfig>>>('prefixes', {});
+	
+	// Start with the selected theme
+	const baseTheme = { ...themes[selectedTheme] };
+	
+	// Apply user customizations
+	for (const [prefix, customConfig] of Object.entries(userPrefixes)) {
+		if (baseTheme[prefix]) {
+			baseTheme[prefix] = {
+				...baseTheme[prefix],
+				...customConfig
+			};
+		}
+	}
+	
+	return baseTheme;
+}
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -9,8 +30,14 @@ export function activate(context: vscode.ExtensionContext) {
 	const outputChannel = vscode.window.createOutputChannel('Tailwind Rainbow');
 	outputChannel.appendLine('Tailwind Rainbow is now active');
 
-	// Store decorations for each unique prefix
 	const decorationTypes = new Map<string, vscode.TextEditorDecorationType>();
+	let activeTheme = getActiveTheme();
+
+	// Clear all existing decorations
+	function clearDecorations() {
+		decorationTypes.forEach(type => type.dispose());
+		decorationTypes.clear();
+	}
 
 	function updateDecorations(editor: vscode.TextEditor) {
 		outputChannel.appendLine(`Updating decorations for ${editor.document.fileName}`);
@@ -44,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 					let currentPos = 0;
 
 					prefixes.forEach((prefix, index) => {
-						const config = defaultTheme[prefix as TailwindPrefix];
+						const config = activeTheme[prefix as TailwindPrefix];
 						if (config?.enabled) {
 							const prefixStart = className.indexOf(prefix, currentPos);
 							currentPos = prefixStart + prefix.length + 1;
@@ -52,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
 							// Find end position - either next enabled prefix or end of class
 							let endPos;
 							let nextEnabledPrefix = prefixes.slice(index + 1).find(p =>
-								defaultTheme[p as TailwindPrefix]?.enabled
+								activeTheme[p as TailwindPrefix]?.enabled
 							);
 
 							if (nextEnabledPrefix) {
@@ -86,7 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Apply all decorations at once
 		prefixRanges.forEach((ranges, prefix) => {
-			const config = defaultTheme[prefix as TailwindPrefix];
+			const config = activeTheme[prefix as TailwindPrefix];
 			if (config?.enabled) {
 				const decorationType = getDecorationForPrefix(prefix, config);
 				editor.setDecorations(decorationType, ranges);
@@ -106,6 +133,71 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		return decorationTypes.get(prefix)!;
 	}
+
+	// Add theme switching command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('tailwind-rainbow.selectTheme', async () => {
+			const themeNames: ThemeType[] = ['default', 'neon'];
+			
+			// Store original theme to restore if cancelled
+			const originalTheme = getActiveTheme();
+			
+			const quickPick = vscode.window.createQuickPick();
+			quickPick.items = themeNames.map(theme => ({ label: theme }));
+			quickPick.placeholder = 'Select a theme';
+			
+			// Preview theme as user navigates
+			quickPick.onDidChangeActive(items => {
+				const selected = items[0]?.label as ThemeType;
+				if (selected) {
+					clearDecorations();
+					activeTheme = { ...themes[selected] };
+					const editor = vscode.window.activeTextEditor;
+					if (editor) {
+						updateDecorations(editor);
+					}
+				}
+			});
+
+			// Handle selection or cancellation
+			quickPick.onDidAccept(async () => {
+				const selected = quickPick.activeItems[0]?.label as ThemeType;
+				if (selected) {
+					await vscode.workspace.getConfiguration('tailwindRainbow').update('theme', selected, true);
+				}
+				quickPick.dispose();
+			});
+
+			quickPick.onDidHide(() => {
+				// Restore original theme if cancelled
+				if (!quickPick.selectedItems.length) {
+					clearDecorations();
+					activeTheme = originalTheme;
+					const editor = vscode.window.activeTextEditor;
+					if (editor) {
+						updateDecorations(editor);
+					}
+				}
+				quickPick.dispose();
+			});
+
+			quickPick.show();
+		})
+	);
+
+	// Watch for configuration changes
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration(event => {
+			if (event.affectsConfiguration('tailwindRainbow')) {
+				clearDecorations();
+				activeTheme = getActiveTheme();
+				const editor = vscode.window.activeTextEditor;
+				if (editor) {
+					updateDecorations(editor);
+				}
+			}
+		})
+	);
 
 	// Register event handlers
 	context.subscriptions.push(

@@ -20,10 +20,45 @@
   "contributes": {
     "commands": [
       {
-        "command": "tailwind-rainbow.helloWorld",
-        "title": "Hello World"
+        "command": "tailwind-rainbow.selectTheme",
+        "title": "Select Theme",
+        "category": "Tailwind Rainbow"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Tailwind Rainbow",
+      "properties": {
+        "tailwindRainbow.theme": {
+          "type": "string",
+          "enum": ["default", "neon"],
+          "default": "default",
+          "description": "Select the color theme for Tailwind prefixes"
+        },
+        "tailwindRainbow.prefixes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "color": {
+                "type": "string",
+                "description": "Color for the prefix (hex format)"
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "Enable/disable this prefix"
+              },
+              "fontWeight": {
+                "type": "string",
+                "enum": ["normal", "bold"],
+                "description": "Font weight for the prefix"
+              }
+            }
+          },
+          "default": {},
+          "description": "Custom prefix configurations that override the theme defaults"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
