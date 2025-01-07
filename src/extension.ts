@@ -1,16 +1,15 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { defaultTheme, PrefixConfig, ThemeType, themes, TailwindPrefix } from './defaultTheme';
+import { PrefixConfig, ThemeType, themes, TailwindPrefix } from './defaultTheme';
+import { api } from './api';
 
 function getActiveTheme(): Record<string, PrefixConfig> {
 	const config = vscode.workspace.getConfiguration('tailwindRainbow');
 	const selectedTheme = config.get<ThemeType>('theme', 'default');
 	const userPrefixes = config.get<Record<string, Partial<PrefixConfig>>>('prefixes', {});
-	
+
 	// Start with the selected theme
 	const baseTheme = { ...themes[selectedTheme] };
-	
+
 	// Apply user customizations
 	for (const [prefix, customConfig] of Object.entries(userPrefixes)) {
 		if (baseTheme[prefix]) {
@@ -20,13 +19,11 @@ function getActiveTheme(): Record<string, PrefixConfig> {
 			};
 		}
 	}
-	
+
 	return baseTheme;
 }
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 	const outputChannel = vscode.window.createOutputChannel('Tailwind Rainbow');
 	outputChannel.appendLine('Tailwind Rainbow is now active');
 
@@ -137,21 +134,22 @@ export function activate(context: vscode.ExtensionContext) {
 	// Add theme switching command
 	context.subscriptions.push(
 		vscode.commands.registerCommand('tailwind-rainbow.selectTheme', async () => {
-			const themeNames: ThemeType[] = ['default', 'neon'];
-			
+			// Get all registered themes from the API
+			const themeNames = Array.from(api.getThemes().keys());
+
 			// Store original theme to restore if cancelled
 			const originalTheme = getActiveTheme();
-			
+
 			const quickPick = vscode.window.createQuickPick();
 			quickPick.items = themeNames.map(theme => ({ label: theme }));
 			quickPick.placeholder = 'Select a theme';
-			
+
 			// Preview theme as user navigates
 			quickPick.onDidChangeActive(items => {
-				const selected = items[0]?.label as ThemeType;
+				const selected = items[0]?.label;
 				if (selected) {
 					clearDecorations();
-					activeTheme = { ...themes[selected] };
+					activeTheme = { ...api.getThemes().get(selected)! };
 					const editor = vscode.window.activeTextEditor;
 					if (editor) {
 						updateDecorations(editor);
@@ -161,7 +159,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// Handle selection or cancellation
 			quickPick.onDidAccept(async () => {
-				const selected = quickPick.activeItems[0]?.label as ThemeType;
+				const selected = quickPick.activeItems[0]?.label;
 				if (selected) {
 					await vscode.workspace.getConfiguration('tailwindRainbow').update('theme', selected, true);
 				}
@@ -219,9 +217,32 @@ export function activate(context: vscode.ExtensionContext) {
 	if (vscode.window.activeTextEditor) {
 		updateDecorations(vscode.window.activeTextEditor);
 	}
+
+	// Register built-in themes
+	api.registerTheme('default', themes.default);
+	api.registerTheme('neon', themes.neon);
+
+	// Register theme loading command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('tailwind-rainbow.loadThemes', () => {
+			// This command exists just for activation purposes
+			outputChannel.appendLine('Theme loading triggered');
+		})
+	);
+
+	// Trigger theme extensions to load
+	await vscode.commands.executeCommand('tailwind-rainbow.loadThemes');
+
+	// Expose API
+	return api;
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {
 	// Cleanup will be handled by VS Code
+}
+
+// Add type declaration for the extension API
+export interface ExtensionAPI {
+	registerTheme: (name: string, theme: Record<string, PrefixConfig>) => void;
 }

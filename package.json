@@ -3,6 +3,7 @@
   "displayName": "Tailwind Rainbow",
   "description": "",
   "version": "0.0.1",
+  "publisher": "esdete2",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -22,6 +23,11 @@
       {
         "command": "tailwind-rainbow.selectTheme",
         "title": "Select Theme",
+        "category": "Tailwind Rainbow"
+      },
+      {
+        "command": "tailwind-rainbow.loadThemes",
+        "title": "Load Themes",
         "category": "Tailwind Rainbow"
       }
     ],
