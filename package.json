@@ -36,9 +36,42 @@
       "properties": {
         "tailwindRainbow.theme": {
           "type": "string",
-          "enum": ["default", "neon"],
+          "enum": [
+            "default",
+            "neon"
+          ],
           "default": "default",
           "description": "Select the color theme for Tailwind prefixes"
+        },
+        "tailwindRainbow.themes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "color": {
+                  "type": "string",
+                  "description": "Color for the prefix (hex format)"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable/disable this prefix"
+                },
+                "fontWeight": {
+                  "type": "string",
+                  "enum": [
+                    "normal",
+                    "bold"
+                  ],
+                  "description": "Font weight for the prefix"
+                }
+              }
+            },
+            "description": "Theme configuration"
+          },
+          "default": {},
+          "description": "Custom themes or overrides for existing themes"
         },
         "tailwindRainbow.prefixes": {
           "type": "object",
@@ -55,7 +88,10 @@
               },
               "fontWeight": {
                 "type": "string",
-                "enum": ["normal", "bold"],
+                "enum": [
+                  "normal",
+                  "bold"
+                ],
                 "description": "Font weight for the prefix"
               }
             }

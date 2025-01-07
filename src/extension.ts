@@ -4,13 +4,19 @@ import { api } from './api';
 
 function getActiveTheme(): Record<string, PrefixConfig> {
 	const config = vscode.workspace.getConfiguration('tailwindRainbow');
-	const selectedTheme = config.get<ThemeType>('theme', 'default');
+	const selectedTheme = config.get<string>('theme', 'default');
 	const userPrefixes = config.get<Record<string, Partial<PrefixConfig>>>('prefixes', {});
+	const customThemes = config.get<Record<string, Record<string, PrefixConfig>>>('themes', {});
 
-	// Start with the selected theme
-	const baseTheme = { ...themes[selectedTheme] };
+	// Apply custom themes to API registry
+	Object.entries(customThemes).forEach(([name, theme]) => {
+		api.registerTheme(name, theme);
+	});
 
-	// Apply user customizations
+	// Get theme (either built-in or custom)
+	const baseTheme = { ...api.getThemes().get(selectedTheme)! };
+
+	// Apply user prefix overrides
 	for (const [prefix, customConfig] of Object.entries(userPrefixes)) {
 		if (baseTheme[prefix]) {
 			baseTheme[prefix] = {
@@ -69,7 +75,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					prefixes.forEach((prefix, index) => {
 						const config = activeTheme[prefix as TailwindPrefix];
-						if (config?.enabled) {
+						if (config && config.enabled !== false) {
 							const prefixStart = className.indexOf(prefix, currentPos);
 							currentPos = prefixStart + prefix.length + 1;
 
@@ -111,7 +117,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		// Apply all decorations at once
 		prefixRanges.forEach((ranges, prefix) => {
 			const config = activeTheme[prefix as TailwindPrefix];
-			if (config?.enabled) {
+			if (config && config.enabled !== false) {
 				const decorationType = getDecorationForPrefix(prefix, config);
 				editor.setDecorations(decorationType, ranges);
 			}
