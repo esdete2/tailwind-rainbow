@@ -62,7 +62,25 @@
                   "type": "string",
                   "enum": [
                     "normal",
-                    "bold"
+                    "bold",
+                    "lighter",
+                    "bolder",
+                    "thin",
+                    "extralight",
+                    "light",
+                    "medium",
+                    "semibold",
+                    "extrabold",
+                    "black",
+                    "100",
+                    "200",
+                    "300",
+                    "400",
+                    "500",
+                    "600",
+                    "700",
+                    "800",
+                    "900"
                   ],
                   "description": "Font weight for the prefix"
                 }
