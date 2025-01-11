@@ -1,8 +1,24 @@
 import * as vscode from 'vscode';
+import { minimatch } from 'minimatch';
 import { ThemeService } from './theme';
 import { DecorationService } from './decoration';
 import { PatternService } from './pattern';
 import { OutputService } from './output';
+import { mergeFileExtensions } from '../utils/file-extensions';
+
+const DEFAULT_EXTENSIONS = [
+  "htm",
+  "html",
+  "js",
+  "jsx",
+  "ts",
+  "tsx",
+  "mdx",
+  "vue",
+  "svelte",
+  "astro",
+  "php"
+] as const;
 
 export class ExtensionService {
   private decorationService: DecorationService;
@@ -20,9 +36,32 @@ export class ExtensionService {
   }
 
   private updateDecorations(editor: vscode.TextEditor) {
-    if (!editor) { return; }
+    if (
+      !editor ||
+      editor.document.uri.scheme === 'output' ||
+      editor.document.uri.scheme === 'debug' ||
+      editor.document.isUntitled
+    ) { return; }
 
     const config = vscode.workspace.getConfiguration('tailwindRainbow');
+    const customExtensions = config.get<string[]>('fileExtensions', []);
+    const allowedExtensions = mergeFileExtensions(customExtensions);
+
+    const fileName = editor.document.fileName;
+
+    const isAllowed = allowedExtensions.some(pattern =>
+      minimatch(fileName, pattern, { matchBase: true, nocase: true })
+    );
+
+    if (!isAllowed) {
+      const ext = fileName.split('.').pop();
+      this.outputService.log(
+        `Ignoring file with extension .${ext}. Add "tailwindRainbow.fileExtensions: ['${ext}']" to enable.`
+      );
+      this.decorationService.clearDecorations();
+      return;
+    }
+
     const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
 
     try {

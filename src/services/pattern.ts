@@ -2,8 +2,6 @@ import * as vscode from 'vscode';
 import { OutputService } from './output';
 
 export class PatternService {
-  private outputService = OutputService.getInstance();
-
   findPrefixRanges(editor: vscode.TextEditor, patterns: Record<string, RegexPattern>, activeTheme: Record<string, PrefixConfig>): Map<string, vscode.Range[]> {
     // Return empty Map if no editor, since we can't find any prefix ranges without an editor
     if (!editor) { return new Map(); }
@@ -23,7 +21,6 @@ export class PatternService {
 
         const classNames = stringContent.split(' ');
         for (const className of classNames) {
-          this.outputService.log(`Found class: ${className}`);
           const matchStart = match.index;
           const matchText = match[0];
 

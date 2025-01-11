@@ -11,11 +11,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:html",
-    "onLanguage:javascript",
-    "onLanguage:typescript",
-    "onLanguage:javascriptreact",
-    "onLanguage:typescriptreact"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -114,6 +110,14 @@
             }
           },
           "description": "Custom regex patterns to match class names"
+        },
+        "tailwindRainbow.fileExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "File extensions to include/exclude. Use '*.ext' to include or '!*.ext' to exclude."
         }
       }
     }
@@ -137,5 +141,8 @@
     "ts-jest": "^29.2.5",
     "typescript": "^5.7.2"
   },
-  "packageManager": "pnpm@9.0.6+sha1.648f6014eb363abb36618f2ba59282a9eeb3e879"
+  "packageManager": "pnpm@9.0.6+sha1.648f6014eb363abb36618f2ba59282a9eeb3e879",
+  "dependencies": {
+    "minimatch": "^10.0.1"
+  }
 }
