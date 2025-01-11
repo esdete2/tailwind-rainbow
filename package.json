@@ -91,31 +91,29 @@
           "default": {},
           "description": "Custom themes or overrides for existing themes"
         },
-        "tailwindRainbow.prefixes": {
+        "tailwindRainbow.patterns": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "color": {
+              "regex": {
                 "type": "string",
-                "description": "Color for the prefix (hex format)"
+                "description": "Regular expression to match class names"
               },
               "enabled": {
                 "type": "boolean",
-                "description": "Enable/disable this prefix"
-              },
-              "fontWeight": {
-                "type": "string",
-                "enum": [
-                  "normal",
-                  "bold"
-                ],
-                "description": "Font weight for the prefix"
+                "default": true,
+                "description": "Enable/disable this pattern"
               }
             }
           },
-          "default": {},
-          "description": "Custom prefix configurations that override the theme defaults"
+          "default": {
+            "strings": {
+              "regex": "(['\"`])((?:(?!\\1).)*?)\\1",
+              "enabled": true
+            }
+          },
+          "description": "Custom regex patterns to match class names"
         }
       }
     }
@@ -126,18 +124,18 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "jest"
   },
   "devDependencies": {
-    "@types/vscode": "^1.96.0",
-    "@types/mocha": "^10.0.10",
+    "@types/jest": "^29.5.14",
     "@types/node": "20.x",
+    "@types/vscode": "^1.96.0",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
     "eslint": "^9.16.0",
-    "typescript": "^5.7.2",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.2"
   },
   "packageManager": "pnpm@9.0.6+sha1.648f6014eb363abb36618f2ba59282a9eeb3e879"
 }
