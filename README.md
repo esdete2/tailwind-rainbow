@@ -1,71 +1,119 @@
-# tailwind-rainbow README
+# Tailwind Rainbow 🌈
 
-This is the README for your extension "tailwind-rainbow". After writing up a brief description, we recommend including the following sections.
+A VS Code extension that colorizes Tailwind CSS prefixes for better readability.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 🎨 Colorizes Tailwind prefixes (hover, focus, sm, lg, etc.)
+- 🎯 Multiple built-in color themes
+- ⚙️ Fully customizable themes and patterns
+- 🔌 API for other extensions to register themes
+- 🖥️ Web app to easily create your own themes (coming soon)
 
-For example if there is an image subfolder under your extension project workspace:
+## Usage
 
-\!\[feature X\]\(images/feature-x.png\)
+The extension automatically colorizes Tailwind prefixes in supported file types:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- HTML (.html, .htm)
+- JavaScript/TypeScript (.js, .jsx, .ts, .tsx)
+- Vue (.vue)
+- Svelte (.svelte)
+- Astro (.astro)
+- PHP (.php)
+- MDX (.mdx)
 
-## Requirements
+### Switching Themes
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Type "Tailwind Rainbow: Select Theme"
+3. Choose from available themes
 
-## Extension Settings
+## Configuration
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Custom File Extensions
 
-For example:
+Add support for additional file extensions or disable existing ones:
 
-This extension contributes the following settings:
+```json
+{
+  "tailwindRainbow.fileExtensions": [
+    "mustache", // Include .mustache files
+    "twig", // Include .twig files
+    "!astro" // Exclude .astro files
+  ]
+}
+```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+### Custom Themes
 
-## Known Issues
+Create or override themes:
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+```json
+{
+  "tailwindRainbow.themes": {
+    "custom": {
+      "hover": {
+        "color": "#ff0000",
+        "fontWeight": "bold"
+      }
+    },
+    "default": {
+      "before": {
+        "enabled": false
+      }
+    }
+  }
+}
+```
 
-## Release Notes
+### Custom Patterns
 
-Users appreciate release notes as you update your extension.
+Configure how class names are detected. By default, the extension will detect class names in all kinds of strings (single quotes, double quotes, template literals) to maximize compatibility across different coding styles and frameworks.
 
-### 1.0.0
+```json
+{
+  "tailwindRainbow.patterns": {
+    "default": {
+      "regex": "(['\"`])((?:(?!\\1).)*?)\\1",
+      "enabled": true
+    }
+  }
+}
+```
 
-Initial release of ...
+## Extension API
 
-### 1.0.1
+Other extensions can register custom themes:
 
-Fixed issue #.
+Wait for Tailwind Rainbow to be activated:
 
-### 1.1.0
+```json
+// package.json
+{
+  "activationEvents": ["onCommand:tailwind-rainbow.loadThemes"]
+}
+```
 
-Added features X, Y, and Z.
+Register your theme:
 
----
+```ts
+// extension.ts
+import * as vscode from "vscode";
 
-## Following extension guidelines
+export async function activate(context: vscode.ExtensionContext) {
+  const tailwindRainbow = vscode.extensions.getExtension<any>(
+    "esdete2.tailwind-rainbow"
+  );
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+  if (tailwindRainbow) {
+    tailwindRainbow.exports.registerTheme("myCustomTheme", {
+      xs: { color: "#ff00ff", fontWeight: "bold" },
+      // ...
+    });
+  }
+}
+```
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+## License
 
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT License - see the [LICENSE](LICENSE) file for details

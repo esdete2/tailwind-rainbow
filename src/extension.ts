@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ExtensionService } from './services/extension';
 
+
 export async function activate(context: vscode.ExtensionContext) {
 	const extensionService = new ExtensionService();
 	extensionService.initialize();

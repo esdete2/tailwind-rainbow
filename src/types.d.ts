@@ -5,11 +5,15 @@ interface PrefixConfig {
   '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
 }
 
+interface Theme {
+  [key: string]: PrefixConfig;
+}
+
 interface RegexPattern {
   regex: string;
   enabled: boolean;
 }
 
 interface ExtensionAPI {
-  registerTheme: (name: string, theme: Record<string, PrefixConfig>) => void;
+  registerTheme: (name: string, theme: Theme) => void;
 }

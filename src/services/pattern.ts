@@ -1,7 +1,16 @@
 import * as vscode from 'vscode';
-import { OutputService } from './output';
 
+/**
+ * Service for finding and matching Tailwind class patterns in text
+ */
 export class PatternService {
+  /**
+   * Finds ranges for all Tailwind prefixes in the given editor content
+   * @param editor The VS Code text editor to analyze
+   * @param patterns Regex patterns to match class names
+   * @param activeTheme Current theme configuration for prefix styling
+   * @returns Map of prefix to their ranges in the document
+   */
   findPrefixRanges(editor: vscode.TextEditor, patterns: Record<string, RegexPattern>, activeTheme: Record<string, PrefixConfig>): Map<string, vscode.Range[]> {
     // Return empty Map if no editor, since we can't find any prefix ranges without an editor
     if (!editor) { return new Map(); }
@@ -9,16 +18,19 @@ export class PatternService {
     const text = editor.document.getText();
     const prefixRanges = new Map<string, vscode.Range[]>();
 
-    Object.entries(patterns).forEach(([name, pattern]) => {
+    // Process each pattern (e.g., string patterns, template literals)
+    Object.entries(patterns).forEach(([, pattern]) => {
       if (!pattern.enabled) { return; }
 
       const regex = new RegExp(pattern.regex, 'g');
       let match: RegExpExecArray | null;
 
+      // Find all matches in the text
       while ((match = regex.exec(text)) !== null) {
         const stringContent = match[2];
         if (!stringContent) { continue; }
 
+        // Split into individual class names
         const classNames = stringContent.split(' ');
         for (const className of classNames) {
           const matchStart = match.index;

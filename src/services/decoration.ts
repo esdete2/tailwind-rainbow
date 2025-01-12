@@ -1,14 +1,28 @@
 import * as vscode from 'vscode';
 
+/**
+ * Manages VS Code text decorations for Tailwind prefixes
+ * Handles creation, updating, and cleanup of decorations
+ */
 export class DecorationService {
   private decorationTypes = new Map<string, vscode.TextEditorDecorationType>();
 
+  /**
+   * Cleans up all existing decorations
+   * Should be called when changing themes or closing files
+   */
   clearDecorations() {
     this.decorationTypes.forEach(type => type.dispose());
     this.decorationTypes.clear();
   }
 
-  private getDecorationForPrefix(prefix: string, config: PrefixConfig): vscode.TextEditorDecorationType {
+  /**
+   * Gets or creates a decoration type for a prefix
+   * @param prefix The Tailwind prefix to create decoration for
+   * @param config The styling configuration for the prefix
+   * @returns TextEditorDecorationType for the prefix
+   */
+  getDecorationForPrefix(prefix: string, config: PrefixConfig): vscode.TextEditorDecorationType {
     if (!this.decorationTypes.has(prefix)) {
       this.decorationTypes.set(
         prefix,
@@ -21,13 +35,19 @@ export class DecorationService {
     return this.decorationTypes.get(prefix)!;
   }
 
+  /**
+   * Updates decorations in the editor based on found prefix ranges
+   * @param editor The VS Code text editor to update
+   * @param prefixRanges Map of prefix to their ranges in the document
+   * @param activeTheme Current theme configuration for prefix styling
+   */
   updateDecorations(editor: vscode.TextEditor, prefixRanges: Map<string, vscode.Range[]>, activeTheme: Record<string, PrefixConfig>) {
     if (!editor) { return; }
 
     // Clear existing decorations
     this.decorationTypes.forEach(type => editor.setDecorations(type, []));
 
-    // Apply all decorations at once
+    // Apply new decorations
     prefixRanges.forEach((ranges, prefix) => {
       const config = activeTheme[prefix];
       if (config && config.enabled !== false) {

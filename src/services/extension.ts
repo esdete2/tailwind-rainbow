@@ -6,20 +6,10 @@ import { PatternService } from './pattern';
 import { OutputService } from './output';
 import { mergeFileExtensions } from '../utils/file-extensions';
 
-const DEFAULT_EXTENSIONS = [
-  "htm",
-  "html",
-  "js",
-  "jsx",
-  "ts",
-  "tsx",
-  "mdx",
-  "vue",
-  "svelte",
-  "astro",
-  "php"
-] as const;
-
+/**
+ * Main service that coordinates all extension functionality
+ * Manages initialization, event handling, and service coordination
+ */
 export class ExtensionService {
   private decorationService: DecorationService;
   private patternService: PatternService;
@@ -27,6 +17,9 @@ export class ExtensionService {
   private activeTheme: Record<string, PrefixConfig>;
   private outputService = OutputService.getInstance();
 
+  /**
+   * Initializes all required services and logs activation
+   */
   constructor() {
     this.decorationService = new DecorationService();
     this.patternService = new PatternService();
@@ -35,6 +28,11 @@ export class ExtensionService {
     this.outputService.log('Tailwind Rainbow is now active');
   }
 
+  /**
+   * Updates decorations for the current editor
+   * Handles file extension filtering and pattern matching
+   * @param editor The VS Code text editor to update
+   */
   private updateDecorations(editor: vscode.TextEditor) {
     if (
       !editor ||
@@ -72,6 +70,11 @@ export class ExtensionService {
     }
   }
 
+  /**
+   * Registers all event handlers for the extension
+   * Includes theme switching, configuration changes, and editor events
+   * @param context The VS Code extension context
+   */
   registerEventHandlers(context: vscode.ExtensionContext) {
     // Theme switching command
     context.subscriptions.push(
@@ -127,10 +130,19 @@ export class ExtensionService {
     );
   }
 
+  /**
+   * Gets the theme service instance
+   * Used by the extension API for theme registration
+   * @returns The ThemeService instance
+   */
   getThemeService() {
     return this.themeService;
   }
 
+  /**
+   * Initializes the extension with the current editor
+   * Called after extension activation
+   */
   initialize() {
     // Initial decoration
     if (vscode.window.activeTextEditor) {

@@ -1,4 +1,4 @@
-const DEFAULT_EXTENSIONS = [
+export const DEFAULT_EXTENSIONS = [
   "htm",
   "html",
   "js",
