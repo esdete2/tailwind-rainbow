@@ -32,12 +32,8 @@
       "properties": {
         "tailwindRainbow.theme": {
           "type": "string",
-          "enum": [
-            "default",
-            "neon"
-          ],
           "default": "default",
-          "description": "Select the color theme for Tailwind prefixes"
+          "markdownDescription": "Theme name. Built-in themes: `default`, `neon`"
         },
         "tailwindRainbow.themes": {
           "type": "object",

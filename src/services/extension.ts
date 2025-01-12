@@ -27,6 +27,17 @@ export class ExtensionService {
   }
 
   /**
+   * Updates decorations after theme registration
+   */
+  updateAfterThemeRegistration() {
+    this.activeTheme = this.themeService.getActiveTheme();
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      this.updateDecorations(editor);
+    }
+  }
+
+  /**
    * Updates decorations for the current editor
    * Handles file extension filtering and pattern matching
    * @param editor The VS Code text editor to update

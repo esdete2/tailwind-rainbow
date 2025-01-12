@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { ExtensionService } from './services/extension';
 
-
 export async function activate(context: vscode.ExtensionContext) {
 	const extensionService = new ExtensionService();
 	extensionService.initialize();
@@ -12,7 +11,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const themeService = extensionService.getThemeService();
 	return {
-		registerTheme: (name: string, theme: Record<string, PrefixConfig>) => themeService.registerTheme(name, theme),
+		registerTheme: (name: string, theme: Record<string, PrefixConfig>) => {
+			themeService.registerTheme(name, theme);
+			extensionService.updateAfterThemeRegistration();
+		},
 		getThemes: () => themeService.getThemes()
 	};
 }
