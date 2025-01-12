@@ -10,17 +10,7 @@ A VS Code extension that colorizes Tailwind CSS prefixes for better readability.
 - 🔌 API for other extensions to register themes
 - 🖥️ Web app to easily create your own themes (coming soon)
 
-## Usage
-
-The extension automatically colorizes Tailwind prefixes in supported file types:
-
-- HTML (.html, .htm)
-- JavaScript/TypeScript (.js, .jsx, .ts, .tsx)
-- Vue (.vue)
-- Svelte (.svelte)
-- Astro (.astro)
-- PHP (.php)
-- MDX (.mdx)
+## Configuration
 
 ### Switching Themes
 
@@ -28,21 +18,30 @@ The extension automatically colorizes Tailwind prefixes in supported file types:
 2. Type "Tailwind Rainbow: Select Theme"
 3. Choose from available themes
 
-## Configuration
+### Supported Languages
 
-### Custom File Extensions
-
-Add support for additional file extensions or disable existing ones:
+Configure which languages the extension should be active for. Default languages are:
 
 ```json
 {
-  "tailwindRainbow.fileExtensions": [
-    "mustache", // Include .mustache files
-    "twig", // Include .twig files
-    "!astro" // Exclude .astro files
+  "tailwindRainbow.languages": [
+    "html",
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact",
+    "vue",
+    "svelte",
+    "astro",
+    "php",
   ]
 }
 ```
+
+The extension uses VS Code's built-in language identifiers. You can find the language identifier for your file by:
+1. Opening the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Running "Change Language Mode"
+3. The items in the list are the language identifiers you can use
 
 ### Custom Themes
 

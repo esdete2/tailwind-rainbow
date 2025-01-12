@@ -1,10 +1,8 @@
 import * as vscode from 'vscode';
-import { minimatch } from 'minimatch';
 import { ThemeService } from './theme';
 import { DecorationService } from './decoration';
 import { PatternService } from './pattern';
 import { OutputService } from './output';
-import { mergeFileExtensions } from '../utils/file-extensions';
 
 /**
  * Main service that coordinates all extension functionality
@@ -42,19 +40,13 @@ export class ExtensionService {
     ) { return; }
 
     const config = vscode.workspace.getConfiguration('tailwindRainbow');
-    const customExtensions = config.get<string[]>('fileExtensions', []);
-    const allowedExtensions = mergeFileExtensions(customExtensions);
+    const supportedLanguages = config.get<string[]>('languages') ?? [];
 
-    const fileName = editor.document.fileName;
+    const languageId = editor.document.languageId;
 
-    const isAllowed = allowedExtensions.some(pattern =>
-      minimatch(fileName, pattern, { matchBase: true, nocase: true })
-    );
-
-    if (!isAllowed) {
-      const ext = fileName.split('.').pop();
+    if (!supportedLanguages.includes(languageId)) {
       this.outputService.log(
-        `Ignoring file with extension .${ext}. Add "tailwindRainbow.fileExtensions: ['${ext}']" to enable.`
+        `Language '${languageId}' not supported. Add to 'tailwindRainbow.languages' setting to enable.`
       );
       this.decorationService.clearDecorations();
       return;
