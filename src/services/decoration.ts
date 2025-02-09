@@ -12,7 +12,7 @@ export class DecorationService {
    * Should be called when changing themes or closing files
    */
   clearDecorations() {
-    this.decorationTypes.forEach(type => type.dispose());
+    this.decorationTypes.forEach((type) => type.dispose());
     this.decorationTypes.clear();
   }
 
@@ -28,7 +28,7 @@ export class DecorationService {
         prefix,
         vscode.window.createTextEditorDecorationType({
           color: config.color,
-          fontWeight: config.fontWeight
+          fontWeight: config.fontWeight,
         })
       );
     }
@@ -41,19 +41,26 @@ export class DecorationService {
    * @param prefixRanges Map of prefix to their ranges in the document
    * @param activeTheme Current theme configuration for prefix styling
    */
-  updateDecorations(editor: vscode.TextEditor, prefixRanges: Map<string, vscode.Range[]>, activeTheme: Record<string, PrefixConfig>) {
-    if (!editor) { return; }
+  updateDecorations(
+    editor: vscode.TextEditor,
+    prefixRanges: Map<string, vscode.Range[]>,
+    activeTheme: Record<string, PrefixConfig>
+  ) {
+    if (!editor) {
+      return;
+    }
 
     // Clear existing decorations
-    this.decorationTypes.forEach(type => editor.setDecorations(type, []));
+    this.decorationTypes.forEach((type) => editor.setDecorations(type, []));
 
     // Apply new decorations
     prefixRanges.forEach((ranges, prefix) => {
       const config = activeTheme[prefix];
+      // console.log("[updateDecorations] prefix:", prefix, "config:", config, "ranges:", ranges); // Keep for debugging
       if (config && config.enabled !== false) {
         const decorationType = this.getDecorationForPrefix(prefix, config);
         editor.setDecorations(decorationType, ranges);
       }
     });
   }
-} 
+}

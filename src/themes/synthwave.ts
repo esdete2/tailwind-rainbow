@@ -1,148 +1,148 @@
-export const defaultTheme: Record<string, PrefixConfig> = {
+export const synthwaveTheme: Record<string, PrefixConfig> = {
   // responsive
   sm: {
-    color: '#d18bfa',
+    color: '#ff71ce',
     fontWeight: '700',
   },
   md: {
-    color: '#b88bfa',
+    color: '#ff2fb9',
     fontWeight: '700',
   },
   lg: {
-    color: '#a78bfa',
+    color: '#ff00a4',
     fontWeight: '700',
   },
   xl: {
-    color: '#8b8bfa',
+    color: '#df008f',
     fontWeight: '700',
   },
   '2xl': {
-    color: '#8b9dfa',
+    color: '#bf007a',
     fontWeight: '700',
   },
 
   'max-sm': {
-    color: '#d18bfa',
+    color: '#ff71ce',
     fontWeight: '700',
   },
   'max-md': {
-    color: '#b88bfa',
+    color: '#ff2fb9',
     fontWeight: '700',
   },
   'max-lg': {
-    color: '#a78bfa',
+    color: '#ff00a4',
     fontWeight: '700',
   },
   'max-xl': {
-    color: '#8b8bfa',
+    color: '#df008f',
     fontWeight: '700',
   },
   'max-2xl': {
-    color: '#8b9dfa',
+    color: '#bf007a',
     fontWeight: '700',
   },
 
   // pseudo
   before: {
-    color: '#ffa357',
+    color: '#ff9e4f',
     fontWeight: '700',
   },
   after: {
-    color: '#f472b6',
+    color: '#ff6b21',
     fontWeight: '700',
   },
 
   // interactive
   hover: {
-    color: '#4ee585',
+    color: '#b967ff',
     fontWeight: '700',
   },
   focus: {
-    color: '#4ee6b8',
+    color: '#a742ff',
     fontWeight: '700',
   },
   active: {
-    color: '#49d5e0',
+    color: '#951dff',
     fontWeight: '700',
   },
 
   // relational
   'group-hover': {
-    color: '#4ee585',
+    color: '#b967ff',
     fontWeight: '700',
   },
   'group-focus': {
-    color: '#4ee6b8',
+    color: '#a742ff',
     fontWeight: '700',
   },
   'group-active': {
-    color: '#49d5e0',
+    color: '#951dff',
     fontWeight: '700',
   },
   'peer-hover': {
-    color: '#4ee585',
+    color: '#b967ff',
     fontWeight: '700',
   },
   'peer-focus': {
-    color: '#4ee6b8',
+    color: '#a742ff',
     fontWeight: '700',
   },
   'peer-active': {
-    color: '#49d5e0',
+    color: '#951dff',
     fontWeight: '700',
   },
 
   // modes
   dark: {
-    color: '#a5b6cd',
+    color: '#5d6ca7',
     fontWeight: '700',
   },
 
   // form
   placeholder: {
-    color: '#ffe279',
+    color: '#ff2182',
     fontWeight: '700',
   },
   checked: {
-    color: '#e3f582',
+    color: '#ff1e69',
     fontWeight: '700',
   },
   valid: {
-    color: '#c8f66c',
+    color: '#ff1a50',
     fontWeight: '700',
   },
   invalid: {
-    color: '#ff8d8d',
+    color: '#ff1737',
     fontWeight: '700',
   },
   disabled: {
-    color: '#ff7777',
+    color: '#ff141e',
     fontWeight: '700',
   },
   required: {
-    color: '#ff6969',
+    color: '#ff1105',
     fontWeight: '700',
   },
 
   // selection
   first: {
-    color: '#7dd3fc',
+    color: '#00ffff',
     fontWeight: '700',
   },
   last: {
-    color: '#4cc7fc',
+    color: '#00e5ff',
     fontWeight: '700',
   },
   only: {
-    color: '#38bdf8',
+    color: '#00ccff',
     fontWeight: '700',
   },
   odd: {
-    color: '#24b0f0',
+    color: '#00b2ff',
     fontWeight: '700',
   },
   even: {
-    color: '#0ea5e9',
+    color: '#0099ff',
     fontWeight: '700',
   },
 } as const;

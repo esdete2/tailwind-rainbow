@@ -73,7 +73,7 @@ Configure how class names are detected. By default, the extension will detect cl
 {
   "tailwindRainbow.patterns": {
     "default": {
-      "regex": "(['\"`])((?:(?!\\1).)*?)\\1",
+      "regex": "(?<=(['`\"]))((?:[^'`\"\\\\]|\\\\.)*?:[^'`\"]*(?:\\[[^\\]]*\\][^'`\"]*)*?)(?<!\\\\)(?=\\1)",
       "enabled": true
     }
   }
@@ -115,4 +115,4 @@ export async function activate(context: vscode.ExtensionContext) {
 
 ## License
 
-MIT License - see the [LICENSE](LICENSE) file for details
+Apache 2.0 License - see the [LICENSE](LICENSE) file for details

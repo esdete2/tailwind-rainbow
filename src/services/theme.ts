@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { api } from './api';
-import { OutputService } from './output';
+
 import themes from '../themes';
+import { OutputService } from './output';
 
 /**
  * Manages themes for the extension, including:
@@ -12,13 +12,14 @@ import themes from '../themes';
 export class ThemeService {
   private activeTheme: Record<string, PrefixConfig>;
   private outputService = OutputService.getInstance();
+  private themeRegistry = new Map<string, Record<string, PrefixConfig>>();
 
   /**
    * Initializes the theme service by registering built-in themes
    */
   constructor() {
     Object.entries(themes).forEach(([name, theme]) => {
-      api.registerTheme(name, theme);
+      this.registerTheme(name, theme);
     });
     this.activeTheme = this.getActiveTheme();
   }
@@ -32,28 +33,28 @@ export class ThemeService {
     const selectedTheme = config.get<string>('theme', 'default');
     const customThemes = config.get<Record<string, Record<string, PrefixConfig>>>('themes', {});
 
-    // Apply custom themes to API registry
+    // Apply custom themes to registry
     Object.entries(customThemes).forEach(([name, theme]) => {
       // Get base theme if it exists (built-in or previously registered)
-      const baseTheme = api.getThemes().get(name) || {};
+      const baseTheme = this.themeRegistry.get(name) || {};
 
       // Create new theme by merging custom config over base theme
       const mergedTheme = { ...baseTheme };
       Object.entries(theme).forEach(([prefix, config]) => {
         mergedTheme[prefix] = {
           ...baseTheme[prefix],
-          ...config
+          ...config,
         };
       });
 
-      api.registerTheme(name, mergedTheme);
+      this.registerTheme(name, mergedTheme);
     });
 
     // Get theme
-    const theme = api.getThemes().get(selectedTheme);
+    const theme = this.themeRegistry.get(selectedTheme);
     if (!theme) {
       this.outputService.error(
-        `Theme '${selectedTheme}' not found. Available themes: ${Array.from(api.getThemes().keys()).join(', ')}`
+        `Theme '${selectedTheme}' not found. Available themes: ${Array.from(this.themeRegistry.keys()).join(', ')}`
       );
       return {};
     }
@@ -66,11 +67,11 @@ export class ThemeService {
    */
   updateActiveTheme() {
     // Clear all themes first
-    api.clearThemes();
+    this.clearThemes();
 
     // Re-register built-in themes
-    api.registerTheme('default', themes.default);
-    api.registerTheme('neon', themes.neon);
+    this.registerTheme('default', themes.default);
+    this.registerTheme('synthwave', themes.synthwave);
     this.activeTheme = this.getActiveTheme();
   }
 
@@ -88,17 +89,17 @@ export class ThemeService {
    * @param onThemeChange Callback to execute when theme changes
    */
   async selectTheme(editor: vscode.TextEditor, onThemeChange: () => void) {
-    const themeNames = Array.from(api.getThemes().keys());
+    const themeNames = Array.from(this.themeRegistry.keys());
     const originalTheme = this.activeTheme;
 
     const quickPick = vscode.window.createQuickPick();
-    quickPick.items = themeNames.map(theme => ({ label: theme }));
+    quickPick.items = themeNames.map((theme) => ({ label: theme }));
     quickPick.placeholder = 'Select a theme';
 
-    quickPick.onDidChangeActive(items => {
+    quickPick.onDidChangeActive((items) => {
       const selected = items[0]?.label;
       if (selected) {
-        this.activeTheme = { ...api.getThemes().get(selected)! };
+        this.activeTheme = { ...this.themeRegistry.get(selected)! };
         onThemeChange();
       }
     });
@@ -128,7 +129,7 @@ export class ThemeService {
    * @param theme The theme configuration
    */
   registerTheme(name: string, theme: Record<string, PrefixConfig>) {
-    api.registerTheme(name, theme);
+    this.themeRegistry.set(name, theme);
   }
 
   /**
@@ -136,6 +137,14 @@ export class ThemeService {
    * @returns Map of theme names to their configurations
    */
   getThemes() {
-    return api.getThemes();
+    return this.themeRegistry;
   }
-} 
+
+  /**
+   * Clears all registered themes from the registry
+   * Used when reloading themes from settings
+   */
+  clearThemes() {
+    this.themeRegistry.clear();
+  }
+}

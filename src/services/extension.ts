@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import { ThemeService } from './theme';
+
 import { DecorationService } from './decoration';
-import { PatternService } from './pattern';
 import { OutputService } from './output';
+import { PatternService } from './pattern';
+import { ThemeService } from './theme';
 
 /**
  * Main service that coordinates all extension functionality
@@ -16,6 +17,17 @@ export class ExtensionService {
   private outputService = OutputService.getInstance();
 
   /**
+   * Gets the prefix ranges for a given editor
+   * @param editor The VS Code text editor
+   * @returns Map of prefixes to their ranges
+   */
+  public getPrefixRanges(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
+    const config = vscode.workspace.getConfiguration('tailwindRainbow');
+    const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
+    return this.patternService.findPrefixRanges(editor, patterns, this.activeTheme);
+  }
+
+  /**
    * Initializes all required services and logs activation
    */
   constructor() {
@@ -23,7 +35,7 @@ export class ExtensionService {
     this.patternService = new PatternService();
     this.themeService = new ThemeService();
     this.activeTheme = this.themeService.getActiveTheme();
-    this.outputService.log('Tailwind Rainbow is now active');
+    this.outputService.debug('Tailwind Rainbow is now active');
   }
 
   /**
@@ -48,7 +60,9 @@ export class ExtensionService {
       editor.document.uri.scheme === 'output' ||
       editor.document.uri.scheme === 'debug' ||
       editor.document.isUntitled
-    ) { return; }
+    ) {
+      return;
+    }
 
     const config = vscode.workspace.getConfiguration('tailwindRainbow');
     const supportedLanguages = config.get<string[]>('languages') ?? [];
@@ -95,7 +109,7 @@ export class ExtensionService {
 
     // Configuration changes
     context.subscriptions.push(
-      vscode.workspace.onDidChangeConfiguration(event => {
+      vscode.workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration('tailwindRainbow')) {
           this.decorationService.clearDecorations();
           this.themeService.updateActiveTheme();
@@ -110,13 +124,13 @@ export class ExtensionService {
 
     // Editor events
     context.subscriptions.push(
-      vscode.window.onDidChangeActiveTextEditor(editor => {
+      vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor) {
           this.updateDecorations(editor);
         }
       }),
 
-      vscode.workspace.onDidChangeTextDocument(event => {
+      vscode.workspace.onDidChangeTextDocument((event) => {
         const editor = vscode.window.activeTextEditor;
         if (editor && event.document === editor.document) {
           this.updateDecorations(editor);
@@ -127,7 +141,7 @@ export class ExtensionService {
     // Theme loading command
     context.subscriptions.push(
       vscode.commands.registerCommand('tailwind-rainbow.loadThemes', () => {
-        this.outputService.log('Theme loading triggered');
+        this.outputService.debug('Theme loading triggered');
         return this.themeService;
       })
     );
@@ -154,4 +168,4 @@ export class ExtensionService {
       this.updateDecorations(vscode.window.activeTextEditor);
     }
   }
-} 
+}

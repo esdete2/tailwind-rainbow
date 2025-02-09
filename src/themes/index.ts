@@ -1,4 +1,4 @@
 import { defaultTheme } from './default';
-import { neonTheme } from './neon';
+import { synthwaveTheme } from './synthwave';
 
-export default { default: defaultTheme, neon: neonTheme };
+export default { default: defaultTheme, synthwave: synthwaveTheme };

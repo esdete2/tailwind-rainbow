@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 export class OutputService {
   private static instance: OutputService;
   private channel: vscode.OutputChannel;
+  private debugEnabled: boolean;
 
   /**
    * Private constructor to enforce singleton pattern
@@ -14,6 +15,7 @@ export class OutputService {
    */
   private constructor() {
     this.channel = vscode.window.createOutputChannel('Tailwind Rainbow');
+    this.debugEnabled = vscode.workspace.getConfiguration('tailwindRainbow').get('debug') ?? false;
   }
 
   /**
@@ -37,12 +39,23 @@ export class OutputService {
   }
 
   /**
+   * Logs a debug message to the output channel
+   * @param message The message to log
+   */
+  debug(message: string) {
+    if (this.debugEnabled) {
+      const timestamp = new Date().toISOString();
+      this.channel.appendLine(`[${timestamp}] [DEBUG] ${message}`);
+    }
+  }
+
+  /**
    * Logs an error message to the output channel
    * Automatically prefixes the message with "Error: "
    * @param message The error message or Error object to log
    */
   error(message: string | Error) {
     const errorMessage = message instanceof Error ? message.message : message;
-    this.channel.appendLine(`Error: ${errorMessage}`);
+    this.channel.appendLine(`[ERROR] ${errorMessage}`);
   }
-} 
+}
