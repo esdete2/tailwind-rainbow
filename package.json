@@ -19,7 +19,7 @@
     "pretest": "pnpm run build",
     "lint": "eslint src",
     "test": "rm -rf .vscode-test/user-data && rm -rf .vscode-test/extensions && node ./out/test/runTest.js",
-    "install": "pnpm run build && code --install-extension tailwind-rainbow.vsix"
+    "install:extension": "pnpm run build && code --install-extension tailwind-rainbow.vsix"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
