@@ -90,7 +90,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
   }
 
   suiteSetup(async () => {
-    const extension = vscode.extensions.getExtension('esdete2.tailwind-rainbow');
+    const extension = vscode.extensions.getExtension('esdete.tailwind-rainbow');
     if (!extension) {
       throw new Error('Extension not found');
     }

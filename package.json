@@ -3,7 +3,7 @@
   "displayName": "Tailwind Rainbow",
   "description": "",
   "version": "0.0.1",
-  "publisher": "esdete2",
+  "publisher": "esdete",
   "repository": {
     "type": "git",
     "url": "https://github.com/esdete2/tailwind-rainbow"
@@ -14,12 +14,12 @@
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",
-    "build": "vsce package --no-dependencies -o tailwind-rainbow.vsix",
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run build",
     "lint": "eslint src",
     "test": "rm -rf .vscode-test/user-data && rm -rf .vscode-test/extensions && node ./out/test/runTest.js",
-    "install:extension": "pnpm run build && code --install-extension tailwind-rainbow.vsix"
+    "build": "vsce package --no-dependencies -o tailwind-rainbow.vsix",
+    "build:install": "pnpm run build && code --install-extension tailwind-rainbow.vsix"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

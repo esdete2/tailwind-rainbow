@@ -70,8 +70,9 @@ export class ThemeService {
     this.clearThemes();
 
     // Re-register built-in themes
-    this.registerTheme('default', themes.default);
-    this.registerTheme('synthwave', themes.synthwave);
+    for (const [name, theme] of Object.entries(themes)) {
+      this.registerTheme(name, theme);
+    }
     this.activeTheme = this.getActiveTheme();
   }
 
