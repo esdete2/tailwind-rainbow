@@ -6,6 +6,10 @@
 
 A VS Code extension that colorizes Tailwind CSS prefixes for better readability.
 
+<p align="center">
+  <img width="1200" height="685" src="https://github.com/esdete2/tailwind-rainbow/blob/main/images/example.png?raw=true">
+</p>
+
 ## Features
 
 - 🟣 Colorizes Tailwind prefixes (hover, focus, sm, lg, etc.)
