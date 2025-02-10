@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { OutputService } from './output';
+import { getThemeConfigForPrefix } from './utils';
 
 /**
  * Service for finding and matching Tailwind class patterns in text
@@ -28,24 +29,6 @@ export class PatternService {
     const text = editor.document.getText();
     const prefixRanges = new Map<string, vscode.Range[]>();
 
-    const getPrefixConfig = (prefix: string) => {
-      if (activeTheme[prefix]) {
-        return activeTheme[prefix];
-      }
-
-      if (prefix.includes('/')) {
-        const basePrefix = prefix.split('/')[0];
-        this.outputService.debug(`Trying without arbitrary value: ${basePrefix}`);
-
-        // Use the base prefix for storing the range if we found a match
-        if (activeTheme[basePrefix]) {
-          return activeTheme[basePrefix];
-        }
-      }
-
-      return null;
-    };
-
     // Process each pattern
     Object.entries(patterns).forEach(([, pattern]) => {
       if (!pattern.enabled) {
@@ -57,7 +40,7 @@ export class PatternService {
 
       // Find all matches in the text
       while ((match = regex.exec(text)) !== null) {
-        // console.log("[findPrefixRanges] match:", match); // Keep for debugging
+        // console.log('[findPrefixRanges] match:', match); // Keep for debugging
         const stringContent = match[0];
         if (!stringContent) {
           continue;
@@ -80,7 +63,7 @@ export class PatternService {
             let currentPos = 0;
 
             prefixes.forEach((prefix, index) => {
-              const config = getPrefixConfig(prefix);
+              const config = getThemeConfigForPrefix(activeTheme, prefix);
 
               this.outputService.debug(`Trying prefix: ${prefix}, config: ${config ? 'found' : 'not found'}`);
 
@@ -92,7 +75,7 @@ export class PatternService {
                 let endPos;
 
                 const nextEnabledPrefix = prefixes.slice(index + 1).find((p) => {
-                  const config = getPrefixConfig(p);
+                  const config = getThemeConfigForPrefix(activeTheme, p);
                   return config !== null && config.enabled !== false;
                 });
 

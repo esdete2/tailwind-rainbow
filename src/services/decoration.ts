@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+import { getThemeConfigForPrefix } from './utils';
+
 /**
  * Manages VS Code text decorations for Tailwind prefixes
  * Handles creation, updating, and cleanup of decorations
@@ -55,8 +57,8 @@ export class DecorationService {
 
     // Apply new decorations
     prefixRanges.forEach((ranges, prefix) => {
-      const config = activeTheme[prefix];
-      // console.log("[updateDecorations] prefix:", prefix, "config:", config, "ranges:", ranges); // Keep for debugging
+      const config = getThemeConfigForPrefix(activeTheme, prefix);
+      // console.log('[updateDecorations] prefix:', prefix, 'config:', config, 'ranges:', ranges); // Keep for debugging
       if (config && config.enabled !== false) {
         const decorationType = this.getDecorationForPrefix(prefix, config);
         editor.setDecorations(decorationType, ranges);

@@ -243,6 +243,19 @@ suite('Tailwind Class Coloring Test Suite', () => {
     verifyRanges(content, prefixRanges);
   });
 
+  it('should handle nested relational prefixes', async function () {
+    const content = '<div class="group-hover/button:bg-blue-500"></div>';
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const prefixRanges = getPrefixRanges();
+
+    assert.ok(prefixRanges.has('group-hover/button'));
+    assert.strictEqual(prefixRanges.size, 1);
+
+    verifyRanges(content, prefixRanges);
+  });
+
   it('should handle mixed quotes and escaped content', async function () {
     const content = '<div class="hover:text-xl \\"quoted\\" sm:flex"></div>';
     console.log('Testing:', content);
