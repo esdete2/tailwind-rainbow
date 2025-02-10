@@ -9,8 +9,10 @@
     "url": "https://github.com/esdete2/tailwind-rainbow"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Themes"
   ],
+  "icon": "images/icon.png",
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",
