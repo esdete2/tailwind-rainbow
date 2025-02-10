@@ -1,7 +1,3 @@
-<p align="center">
-  <img width="128" height="128" src="https://github.com/esdete2/tailwind-rainbow/blob/main/images/icon.png?raw=true">
-</p>
-
 # Tailwind Rainbow
 
 A VS Code extension that colorizes Tailwind CSS prefixes for better readability.
