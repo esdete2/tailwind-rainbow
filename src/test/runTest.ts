@@ -6,7 +6,7 @@ async function main() {
   try {
     const extensionDevelopmentPath = path.resolve(__dirname, '../../../');
     const extensionTestsPath = path.resolve(__dirname, './suite/index');
-    const vscodeExecutablePath = await downloadAndUnzipVSCode('1.97.0');
+    const vscodeExecutablePath = await downloadAndUnzipVSCode('1.96.0');
     const [cliPath, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
     const vsixPath = path.resolve(__dirname, '../../tailwind-rainbow.vsix');
 
