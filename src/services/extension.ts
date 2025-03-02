@@ -15,6 +15,8 @@ export class ExtensionService {
   private themeService: ThemeService;
   private activeTheme: Record<string, PrefixConfig>;
   private outputService = OutputService.getInstance();
+  private updateTimeout: NodeJS.Timeout | undefined;
+  private updateDelay = 100;
 
   /**
    * Gets the prefix ranges for a given editor
@@ -64,27 +66,34 @@ export class ExtensionService {
       return;
     }
 
-    const config = vscode.workspace.getConfiguration('tailwindRainbow');
-    const supportedLanguages = config.get<string[]>('languages') ?? [];
-
-    const languageId = editor.document.languageId;
-
-    if (!supportedLanguages.includes(languageId)) {
-      this.outputService.log(
-        `Language '${languageId}' not supported. Add to 'tailwindRainbow.languages' setting to enable.`
-      );
-      this.decorationService.clearDecorations();
-      return;
+    // Clear any pending update
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout);
     }
 
-    const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
+    // Debounce update
+    this.updateTimeout = setTimeout(() => {
+      const config = vscode.workspace.getConfiguration('tailwindRainbow');
+      const supportedLanguages = config.get<string[]>('languages') ?? [];
+      const languageId = editor.document.languageId;
 
-    try {
-      const prefixRanges = this.patternService.findPrefixRanges(editor, patterns, this.activeTheme);
-      this.decorationService.updateDecorations(editor, prefixRanges, this.activeTheme);
-    } catch (error) {
-      this.outputService.error(error instanceof Error ? error : String(error));
-    }
+      if (!supportedLanguages.includes(languageId)) {
+        this.outputService.log(
+          `Language '${languageId}' not supported. Add to 'tailwindRainbow.languages' setting to enable.`
+        );
+        this.decorationService.clearDecorations();
+        return;
+      }
+
+      const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
+
+      try {
+        const prefixRanges = this.patternService.findPrefixRanges(editor, patterns, this.activeTheme);
+        this.decorationService.updateDecorations(editor, prefixRanges, this.activeTheme);
+      } catch (error) {
+        this.outputService.error(error instanceof Error ? error : String(error));
+      }
+    }, this.updateDelay);
   }
 
   /**
@@ -166,6 +175,15 @@ export class ExtensionService {
       // Ensure we have the latest theme
       this.activeTheme = this.themeService.getActiveTheme();
       this.updateDecorations(vscode.window.activeTextEditor);
+    }
+  }
+
+  /**
+   * Clears any pending updates
+   */
+  dispose() {
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout);
     }
   }
 }
