@@ -66,32 +66,6 @@ export const synthwaveTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
 
-  // relational
-  'group-hover': {
-    color: '#b967ff',
-    fontWeight: '700',
-  },
-  'group-focus': {
-    color: '#a742ff',
-    fontWeight: '700',
-  },
-  'group-active': {
-    color: '#951dff',
-    fontWeight: '700',
-  },
-  'peer-hover': {
-    color: '#b967ff',
-    fontWeight: '700',
-  },
-  'peer-focus': {
-    color: '#a742ff',
-    fontWeight: '700',
-  },
-  'peer-active': {
-    color: '#951dff',
-    fontWeight: '700',
-  },
-
   // modes
   dark: {
     color: '#5d6ca7',

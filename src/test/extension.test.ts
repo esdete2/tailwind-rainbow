@@ -243,7 +243,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
     verifyRanges(content, prefixRanges);
   });
 
-  it('should handle nested relational prefixes', async function () {
+  it('should handle ignored prefix modifiers', async function () {
     const content = '<div class="group-hover/button:bg-blue-500"></div>';
     console.log('Testing:', content);
     await updateTestFile(content);
@@ -251,6 +251,19 @@ suite('Tailwind Class Coloring Test Suite', () => {
     const prefixRanges = getPrefixRanges();
 
     assert.ok(prefixRanges.has('group-hover/button'));
+    assert.strictEqual(prefixRanges.size, 1);
+
+    verifyRanges(content, prefixRanges);
+  });
+
+  it('should handle chained ignored prefix modifiers', async function () {
+    const content = '<div class="peer-has-checked:bg-blue-500"></div>';
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const prefixRanges = getPrefixRanges();
+
+    assert.ok(prefixRanges.has('peer-has-checked'));
     assert.strictEqual(prefixRanges.size, 1);
 
     verifyRanges(content, prefixRanges);

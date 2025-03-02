@@ -66,32 +66,6 @@ export const defaultTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
 
-  // relational
-  'group-hover': {
-    color: '#4ee585',
-    fontWeight: '700',
-  },
-  'group-focus': {
-    color: '#4ee6b8',
-    fontWeight: '700',
-  },
-  'group-active': {
-    color: '#49d5e0',
-    fontWeight: '700',
-  },
-  'peer-hover': {
-    color: '#4ee585',
-    fontWeight: '700',
-  },
-  'peer-focus': {
-    color: '#4ee6b8',
-    fontWeight: '700',
-  },
-  'peer-active': {
-    color: '#49d5e0',
-    fontWeight: '700',
-  },
-
   // modes
   dark: {
     color: '#a5b6cd',

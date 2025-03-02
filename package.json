@@ -168,6 +168,20 @@
             "php"
           ],
           "description": "Language identifiers the extension should be active for"
+        },
+        "tailwindRainbow.ignoredPrefixModifiers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "group",
+            "peer",
+            "has",
+            "in",
+            "not"
+          ],
+          "description": "Prefix modifiers that should be ignored"
         }
       }
     }

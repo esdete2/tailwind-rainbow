@@ -31,79 +31,126 @@ export class PatternService {
 
     // Process each pattern
     Object.entries(patterns).forEach(([, pattern]) => {
-      if (!pattern.enabled) {
-        return;
-      }
-
-      const regex = new RegExp(pattern.regex, 'g');
-      let match: RegExpExecArray | null;
-
-      // Find all matches in the text
-      while ((match = regex.exec(text)) !== null) {
-        // console.log('[findPrefixRanges] match:', match); // Keep for debugging
-        const stringContent = match[0];
-        if (!stringContent) {
-          continue;
-        }
-
-        // Split into individual class names
-        const classNames = stringContent.split(' ');
-        for (const className of classNames) {
-          const matchStart = match.index;
-          const matchText = match[0];
-
-          // Skip classes starting or ending with a colon
-          if (className.startsWith(':') || className.endsWith(':')) {
-            continue;
-          }
-
-          const parts = className.split(':');
-          if (parts.length > 1) {
-            const prefixes = parts.slice(0, -1);
-            let currentPos = 0;
-
-            prefixes.forEach((prefix, index) => {
-              const config = getThemeConfigForPrefix(activeTheme, prefix);
-
-              this.outputService.debug(`Trying prefix: ${prefix}, config: ${config ? 'found' : 'not found'}`);
-
-              if (config && config.enabled !== false) {
-                const prefixStart = className.indexOf(prefix, currentPos);
-                currentPos = prefixStart + prefix.length;
-
-                // Find end position - either next enabled prefix or end of class
-                let endPos;
-
-                const nextEnabledPrefix = prefixes.slice(index + 1).find((p) => {
-                  const config = getThemeConfigForPrefix(activeTheme, p);
-                  return config !== null && config.enabled !== false;
-                });
-
-                if (nextEnabledPrefix) {
-                  // Color until next enabled prefix
-                  endPos = editor.document.positionAt(
-                    matchStart + matchText.indexOf(className) + className.indexOf(nextEnabledPrefix, prefixStart)
-                  );
-                } else {
-                  // Color until end of class
-                  endPos = editor.document.positionAt(matchStart + matchText.indexOf(className) + className.length);
-                }
-
-                const startPos = editor.document.positionAt(matchStart + matchText.indexOf(className) + prefixStart);
-
-                const range = new vscode.Range(startPos, endPos);
-
-                if (!prefixRanges.has(prefix)) {
-                  prefixRanges.set(prefix, []);
-                }
-                prefixRanges.get(prefix)!.push(range);
-              }
-            });
-          }
-        }
+      if (pattern.enabled) {
+        this.findMatchesForPattern(text, pattern, activeTheme, prefixRanges, editor);
       }
     });
 
     return prefixRanges;
+  }
+
+  /**
+   * Finds all matches for a given pattern in the text and processes them
+   * @param text The text to search
+   * @param pattern The regex pattern to match
+   * @param activeTheme The active theme configuration
+   * @param prefixRanges The map to store the found ranges
+   * @param editor The VS Code text editor
+   */
+  private findMatchesForPattern(
+    text: string,
+    pattern: RegexPattern,
+    activeTheme: Record<string, PrefixConfig>,
+    prefixRanges: Map<string, vscode.Range[]>,
+    editor: vscode.TextEditor
+  ) {
+    const regex = new RegExp(pattern.regex, 'g');
+    let match: RegExpExecArray | null;
+
+    // Find all matches in the text
+    while ((match = regex.exec(text)) !== null) {
+      const stringContent = match[0];
+      if (stringContent) {
+        this.processClassNames(stringContent, match.index, match[0], activeTheme, prefixRanges, editor);
+      }
+    }
+  }
+
+  /**
+   * Processes the matched string by splitting it into individual class names
+   * @param stringContent The matched string content
+   * @param matchStart The starting index of the match
+   * @param matchText The full matched text
+   * @param activeTheme The active theme configuration
+   * @param prefixRanges The map to store the found ranges
+   * @param editor The VS Code text editor
+   */
+  private processClassNames(
+    stringContent: string,
+    matchStart: number,
+    matchText: string,
+    activeTheme: Record<string, PrefixConfig>,
+    prefixRanges: Map<string, vscode.Range[]>,
+    editor: vscode.TextEditor
+  ) {
+    // Split into individual class names
+    const classNames = stringContent.split(' ');
+
+    for (const className of classNames) {
+      // Skip classes starting or ending with a colon
+      if (!className.startsWith(':') && !className.endsWith(':')) {
+        this.processPrefix(className, matchStart, matchText, activeTheme, prefixRanges, editor);
+      }
+    }
+  }
+
+  /**
+   * Processes each individual prefix within a class name
+   * @param className The full class name
+   * @param matchStart The starting index of the match
+   * @param matchText The full matched text
+   * @param activeTheme The active theme configuration
+   * @param prefixRanges The map to store the found ranges
+   * @param editor The VS Code text editor
+   */
+  private processPrefix(
+    className: string,
+    matchStart: number,
+    matchText: string,
+    activeTheme: Record<string, PrefixConfig>,
+    prefixRanges: Map<string, vscode.Range[]>,
+    editor: vscode.TextEditor
+  ) {
+    const parts = className.split(':');
+    if (parts.length > 1) {
+      let prefixes = parts.slice(0, -1);
+      let currentPos = 0;
+
+      prefixes.forEach((prefix, index) => {
+        const config = getThemeConfigForPrefix(activeTheme, prefix);
+
+        this.outputService.debug(`Trying prefix: ${prefix}, config: ${config ? 'found' : 'not found'}`);
+
+        if (config && config.enabled !== false) {
+          const prefixStart = className.indexOf(prefix, currentPos);
+          currentPos = prefixStart + prefix.length;
+
+          // Find end position - either next enabled prefix or end of class
+          let endPos;
+          const nextEnabledPrefix = prefixes.slice(index + 1).find((p) => {
+            const config = getThemeConfigForPrefix(activeTheme, p);
+            return config !== null && config.enabled !== false;
+          });
+
+          if (nextEnabledPrefix) {
+            // Color until next enabled prefix
+            endPos = editor.document.positionAt(
+              matchStart + matchText.indexOf(className) + className.indexOf(nextEnabledPrefix, prefixStart)
+            );
+          } else {
+            // Color until end of class
+            endPos = editor.document.positionAt(matchStart + matchText.indexOf(className) + className.length);
+          }
+
+          const startPos = editor.document.positionAt(matchStart + matchText.indexOf(className) + prefixStart);
+          const range = new vscode.Range(startPos, endPos);
+
+          if (!prefixRanges.has(prefix)) {
+            prefixRanges.set(prefix, []);
+          }
+          prefixRanges.get(prefix)!.push(range);
+        }
+      });
+    }
   }
 }
