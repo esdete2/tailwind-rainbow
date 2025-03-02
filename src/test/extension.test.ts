@@ -269,6 +269,20 @@ suite('Tailwind Class Coloring Test Suite', () => {
     verifyRanges(content, prefixRanges);
   });
 
+  it('should handle wildcard patterns', async function () {
+    const content = '<div class="min-[1920px]:max-w-sm max-sm:w-full"></div>';
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const prefixRanges = getPrefixRanges();
+
+    assert.ok(prefixRanges.has('min-[1920px]'));
+    assert.ok(prefixRanges.has('max-sm'));
+    assert.strictEqual(prefixRanges.size, 2);
+
+    verifyRanges(content, prefixRanges);
+  });
+
   it('should handle mixed quotes and escaped content', async function () {
     const content = '<div class="hover:text-xl \\"quoted\\" sm:flex"></div>';
     console.log('Testing:', content);

@@ -1,5 +1,9 @@
 export const defaultTheme: Record<string, PrefixConfig> = {
   // responsive
+  'min-*': {
+    color: '#d18bfa',
+    fontWeight: '700',
+  },
   sm: {
     color: '#d18bfa',
     fontWeight: '700',
@@ -21,6 +25,10 @@ export const defaultTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
 
+  'max-*': {
+    color: '#d18bfa',
+    fontWeight: '700',
+  },
   'max-sm': {
     color: '#d18bfa',
     fontWeight: '700',

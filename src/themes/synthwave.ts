@@ -1,5 +1,9 @@
 export const synthwaveTheme: Record<string, PrefixConfig> = {
   // responsive
+  'min-*': {
+    color: '#ff71ce',
+    fontWeight: '700',
+  },
   sm: {
     color: '#ff71ce',
     fontWeight: '700',
@@ -21,6 +25,10 @@ export const synthwaveTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
 
+  'max-*': {
+    color: '#ff71ce',
+    fontWeight: '700',
+  },
   'max-sm': {
     color: '#ff71ce',
     fontWeight: '700',
