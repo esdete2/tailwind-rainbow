@@ -10,9 +10,9 @@ import { OutputService } from './output';
  * - Theme selection and switching
  */
 export class ThemeService {
-  private activeTheme: Record<string, PrefixConfig>;
+  private activeTheme: Theme;
   private outputService = OutputService.getInstance();
-  private themeRegistry = new Map<string, Record<string, PrefixConfig>>();
+  private themeRegistry = new Map<string, Theme>();
 
   /**
    * Initializes the theme service by registering built-in themes
@@ -28,10 +28,10 @@ export class ThemeService {
    * Gets the active theme configuration, merging custom themes if defined
    * @returns The active theme configuration
    */
-  getActiveTheme(): Record<string, PrefixConfig> {
+  getActiveTheme(): Theme {
     const config = vscode.workspace.getConfiguration('tailwindRainbow');
     const selectedTheme = config.get<string>('theme', 'default');
-    const customThemes = config.get<Record<string, Record<string, PrefixConfig>>>('themes', {});
+    const customThemes = config.get<Record<string, Theme>>('themes', {});
 
     // Apply custom themes to registry
     Object.entries(customThemes).forEach(([name, theme]) => {
@@ -80,7 +80,7 @@ export class ThemeService {
    * Gets the currently active theme configuration
    * @returns The current theme configuration
    */
-  getCurrentTheme(): Record<string, PrefixConfig> {
+  getCurrentTheme(): Theme {
     return this.activeTheme;
   }
 
@@ -129,7 +129,7 @@ export class ThemeService {
    * @param name The name of the theme
    * @param theme The theme configuration
    */
-  registerTheme(name: string, theme: Record<string, PrefixConfig>) {
+  registerTheme(name: string, theme: Theme) {
     this.themeRegistry.set(name, theme);
   }
 

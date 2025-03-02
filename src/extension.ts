@@ -8,9 +8,9 @@ import { ExtensionService } from './services/extension';
  */
 export interface TailwindRainbowAPI {
   /** Registers a new theme or updates an existing one */
-  registerTheme: (name: string, theme: Record<string, PrefixConfig>) => void;
+  registerTheme: (name: string, theme: Theme) => void;
   /** Gets all registered themes */
-  getThemes: () => Map<string, Record<string, PrefixConfig>>;
+  getThemes: () => Map<string, Theme>;
   /** Clears all registered themes */
   clearThemes: () => void;
   /** Gets the prefix ranges for a given editor */
@@ -30,7 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const themeService = extensionService.getThemeService();
 
   return {
-    registerTheme: (name: string, theme: Record<string, PrefixConfig>) => {
+    registerTheme: (name: string, theme: Theme) => {
       themeService.registerTheme(name, theme);
       extensionService?.updateAfterThemeRegistration();
     },

@@ -1,5 +1,14 @@
-export const defaultTheme: Record<string, PrefixConfig> = {
+export const defaultTheme: Theme = {
+  ARBITRARY: {
+    color: '#ff9987',
+    fontWeight: '700',
+  },
+
   // responsive
+  'min-*': {
+    color: '#d18bfa',
+    fontWeight: '700',
+  },
   sm: {
     color: '#d18bfa',
     fontWeight: '700',
@@ -21,6 +30,10 @@ export const defaultTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
 
+  'max-*': {
+    color: '#d18bfa',
+    fontWeight: '700',
+  },
   'max-sm': {
     color: '#d18bfa',
     fontWeight: '700',
@@ -62,32 +75,6 @@ export const defaultTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
   active: {
-    color: '#49d5e0',
-    fontWeight: '700',
-  },
-
-  // relational
-  'group-hover': {
-    color: '#4ee585',
-    fontWeight: '700',
-  },
-  'group-focus': {
-    color: '#4ee6b8',
-    fontWeight: '700',
-  },
-  'group-active': {
-    color: '#49d5e0',
-    fontWeight: '700',
-  },
-  'peer-hover': {
-    color: '#4ee585',
-    fontWeight: '700',
-  },
-  'peer-focus': {
-    color: '#4ee6b8',
-    fontWeight: '700',
-  },
-  'peer-active': {
     color: '#49d5e0',
     fontWeight: '700',
   },

@@ -1,5 +1,5 @@
 interface PrefixConfig {
-  color: string;
+  color?: string;
   enabled?: boolean;
   fontWeight?:
     | 'normal'
@@ -25,7 +25,8 @@ interface PrefixConfig {
 }
 
 interface Theme {
-  [key: string]: PrefixConfig;
+  ARBITRARY?: PrefixConfig;
+  [key: string]: PrefixConfig | undefined;
 }
 
 interface RegexPattern {

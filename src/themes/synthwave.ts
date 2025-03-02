@@ -1,5 +1,13 @@
-export const synthwaveTheme: Record<string, PrefixConfig> = {
+export const synthwaveTheme: Theme = {
+  ARBITRARY: {
+    color: '#ff3308',
+    fontWeight: '700',
+  },
   // responsive
+  'min-*': {
+    color: '#ff71ce',
+    fontWeight: '700',
+  },
   sm: {
     color: '#ff71ce',
     fontWeight: '700',
@@ -21,6 +29,10 @@ export const synthwaveTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
 
+  'max-*': {
+    color: '#ff71ce',
+    fontWeight: '700',
+  },
   'max-sm': {
     color: '#ff71ce',
     fontWeight: '700',
@@ -62,32 +74,6 @@ export const synthwaveTheme: Record<string, PrefixConfig> = {
     fontWeight: '700',
   },
   active: {
-    color: '#951dff',
-    fontWeight: '700',
-  },
-
-  // relational
-  'group-hover': {
-    color: '#b967ff',
-    fontWeight: '700',
-  },
-  'group-focus': {
-    color: '#a742ff',
-    fontWeight: '700',
-  },
-  'group-active': {
-    color: '#951dff',
-    fontWeight: '700',
-  },
-  'peer-hover': {
-    color: '#b967ff',
-    fontWeight: '700',
-  },
-  'peer-focus': {
-    color: '#a742ff',
-    fontWeight: '700',
-  },
-  'peer-active': {
     color: '#951dff',
     fontWeight: '700',
   },

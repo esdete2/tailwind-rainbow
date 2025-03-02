@@ -13,7 +13,7 @@ export class ExtensionService {
   private decorationService: DecorationService;
   private patternService: PatternService;
   private themeService: ThemeService;
-  private activeTheme: Record<string, PrefixConfig>;
+  private activeTheme: Theme;
   private outputService = OutputService.getInstance();
   private updateTimeout: NodeJS.Timeout | undefined;
   private updateDelay = 100;
