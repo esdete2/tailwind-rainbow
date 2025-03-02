@@ -43,11 +43,7 @@ export class DecorationService {
    * @param prefixRanges Map of prefix to their ranges in the document
    * @param activeTheme Current theme configuration for prefix styling
    */
-  updateDecorations(
-    editor: vscode.TextEditor,
-    prefixRanges: Map<string, vscode.Range[]>,
-    activeTheme: Record<string, PrefixConfig>
-  ) {
+  updateDecorations(editor: vscode.TextEditor, prefixRanges: Map<string, vscode.Range[]>, activeTheme: Theme) {
     if (!editor) {
       return;
     }

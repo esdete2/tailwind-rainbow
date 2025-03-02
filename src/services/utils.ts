@@ -45,6 +45,11 @@ export const getThemeConfigForPrefix = (activeTheme: Theme, prefix: string) => {
     }
   }
 
+  // Check for arbitrary prefix
+  if (activeTheme.ARBITRARY && /^\[.+\]$/.test(prefix)) {
+    return activeTheme.ARBITRARY;
+  }
+
   // Check for matching wildcard
   const parts = prefix.split('-');
   if (parts.length > 1 && parts[1]) {

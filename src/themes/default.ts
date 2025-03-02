@@ -1,4 +1,9 @@
-export const defaultTheme: Record<string, PrefixConfig> = {
+export const defaultTheme: Theme = {
+  ARBITRARY: {
+    color: '#ff9987',
+    fontWeight: '700',
+  },
+
   // responsive
   'min-*': {
     color: '#d18bfa',

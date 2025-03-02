@@ -283,6 +283,19 @@ suite('Tailwind Class Coloring Test Suite', () => {
     verifyRanges(content, prefixRanges);
   });
 
+  it('should handle arbitrary prefixes', async function () {
+    const content = '<div class="[&.is-dragging]:cursor-grabbing"></div>';
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const prefixRanges = getPrefixRanges();
+
+    assert.ok(prefixRanges.has('[&.is-dragging]'));
+    assert.strictEqual(prefixRanges.size, 1);
+
+    verifyRanges(content, prefixRanges);
+  });
+
   it('should handle mixed quotes and escaped content', async function () {
     const content = '<div class="hover:text-xl \\"quoted\\" sm:flex"></div>';
     console.log('Testing:', content);

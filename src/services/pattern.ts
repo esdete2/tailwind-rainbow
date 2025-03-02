@@ -19,7 +19,7 @@ export class PatternService {
   findPrefixRanges(
     editor: vscode.TextEditor,
     patterns: Record<string, RegexPattern>,
-    activeTheme: Record<string, PrefixConfig>
+    activeTheme: Theme
   ): Map<string, vscode.Range[]> {
     // Return empty Map if no editor, since we can't find any prefix ranges without an editor
     if (!editor) {
@@ -50,7 +50,7 @@ export class PatternService {
   private findMatchesForPattern(
     text: string,
     pattern: RegexPattern,
-    activeTheme: Record<string, PrefixConfig>,
+    activeTheme: Theme,
     prefixRanges: Map<string, vscode.Range[]>,
     editor: vscode.TextEditor
   ) {
@@ -79,7 +79,7 @@ export class PatternService {
     stringContent: string,
     matchStart: number,
     matchText: string,
-    activeTheme: Record<string, PrefixConfig>,
+    activeTheme: Theme,
     prefixRanges: Map<string, vscode.Range[]>,
     editor: vscode.TextEditor
   ) {
@@ -107,7 +107,7 @@ export class PatternService {
     className: string,
     matchStart: number,
     matchText: string,
-    activeTheme: Record<string, PrefixConfig>,
+    activeTheme: Theme,
     prefixRanges: Map<string, vscode.Range[]>,
     editor: vscode.TextEditor
   ) {

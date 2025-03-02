@@ -1,4 +1,8 @@
-export const synthwaveTheme: Record<string, PrefixConfig> = {
+export const synthwaveTheme: Theme = {
+  ARBITRARY: {
+    color: '#ff3308',
+    fontWeight: '700',
+  },
   // responsive
   'min-*': {
     color: '#ff71ce',
