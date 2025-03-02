@@ -17,8 +17,10 @@ export interface TailwindRainbowAPI {
   getPrefixRanges: (editor: vscode.TextEditor) => Map<string, vscode.Range[]>;
 }
 
+let extensionService: ExtensionService | undefined;
+
 export async function activate(context: vscode.ExtensionContext) {
-  const extensionService = new ExtensionService();
+  extensionService = new ExtensionService();
   extensionService.initialize();
   extensionService.registerEventHandlers(context);
 
@@ -30,16 +32,16 @@ export async function activate(context: vscode.ExtensionContext) {
   return {
     registerTheme: (name: string, theme: Record<string, PrefixConfig>) => {
       themeService.registerTheme(name, theme);
-      extensionService.updateAfterThemeRegistration();
+      extensionService?.updateAfterThemeRegistration();
     },
     getThemes: () => themeService.getThemes(),
     clearThemes: () => themeService.clearThemes(),
     getPrefixRanges: (editor: vscode.TextEditor) => {
-      return extensionService.getPrefixRanges(editor);
+      return extensionService?.getPrefixRanges(editor);
     },
   };
 }
 
 export function deactivate() {
-  // Cleanup will be handled by VS Code
+  extensionService?.dispose();
 }
