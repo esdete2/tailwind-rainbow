@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 
 import { DecorationService } from './decoration';
 import { OutputService } from './output';
-import { PatternService } from './pattern';
 import { ThemeService } from './theme';
+import { TokenizerService } from './tokenizer';
 
 /**
  * Main service that coordinates all extension functionality
@@ -11,12 +11,13 @@ import { ThemeService } from './theme';
  */
 export class ExtensionService {
   private decorationService: DecorationService;
-  private patternService: PatternService;
+  private tokenizerService: TokenizerService;
   private themeService: ThemeService;
   private activeTheme: Theme;
   private outputService = OutputService.getInstance();
   private updateTimeout: NodeJS.Timeout | undefined;
-  private updateDelay = 100;
+  private updateDelay = 300; // Increased delay for better performance
+  private isProcessing = false; // Prevent concurrent processing
 
   /**
    * Gets the prefix ranges for a given editor
@@ -24,9 +25,7 @@ export class ExtensionService {
    * @returns Map of prefixes to their ranges
    */
   public getPrefixRanges(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
-    const config = vscode.workspace.getConfiguration('tailwindRainbow');
-    const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
-    return this.patternService.findPrefixRanges(editor, patterns, this.activeTheme);
+    return this.tokenizerService.findClassRanges(editor, this.activeTheme);
   }
 
   /**
@@ -34,7 +33,7 @@ export class ExtensionService {
    */
   constructor() {
     this.decorationService = new DecorationService();
-    this.patternService = new PatternService();
+    this.tokenizerService = new TokenizerService();
     this.themeService = new ThemeService();
     this.activeTheme = this.themeService.getActiveTheme();
     this.outputService.debug('Tailwind Rainbow is now active');
@@ -71,27 +70,33 @@ export class ExtensionService {
       clearTimeout(this.updateTimeout);
     }
 
-    // Debounce update
+    // Debounce update with concurrency protection
     this.updateTimeout = setTimeout(() => {
-      const config = vscode.workspace.getConfiguration('tailwindRainbow');
-      const supportedLanguages = config.get<string[]>('languages') ?? [];
-      const languageId = editor.document.languageId;
-
-      if (!supportedLanguages.includes(languageId)) {
-        this.outputService.log(
-          `Language '${languageId}' not supported. Add to 'tailwindRainbow.languages' setting to enable.`
-        );
-        this.decorationService.clearDecorations();
-        return;
+      if (this.isProcessing) {
+        return; // Skip if already processing
       }
 
-      const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
+      this.isProcessing = true;
 
       try {
-        const prefixRanges = this.patternService.findPrefixRanges(editor, patterns, this.activeTheme);
+        const config = vscode.workspace.getConfiguration('tailwindRainbow');
+        const supportedLanguages = config.get<string[]>('languages') ?? [];
+        const languageId = editor.document.languageId;
+
+        if (!supportedLanguages.includes(languageId)) {
+          this.outputService.log(
+            `Language '${languageId}' not supported. Add to 'tailwindRainbow.languages' setting to enable.`
+          );
+          this.decorationService.clearDecorations();
+          return;
+        }
+
+        const prefixRanges = this.tokenizerService.findClassRanges(editor, this.activeTheme);
         this.decorationService.updateDecorations(editor, prefixRanges, this.activeTheme);
       } catch (error) {
         this.outputService.error(error instanceof Error ? error : String(error));
+      } finally {
+        this.isProcessing = false;
       }
     }, this.updateDelay);
   }
@@ -123,6 +128,10 @@ export class ExtensionService {
           this.decorationService.clearDecorations();
           this.themeService.updateActiveTheme();
           this.activeTheme = this.themeService.getCurrentTheme();
+
+          // Reload tokenizer configuration for pattern changes
+          this.tokenizerService.reloadConfiguration();
+
           const editor = vscode.window.activeTextEditor;
           if (editor) {
             this.updateDecorations(editor);

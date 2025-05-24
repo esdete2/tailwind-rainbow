@@ -25,38 +25,72 @@ const removeIgnoredModifiers = (prefix: string) => {
  * @returns The theme configuration for the prefix
  */
 export const getThemeConfigForPrefix = (activeTheme: Theme, prefix: string) => {
-  // Check for exact match
-  if (activeTheme[prefix]) {
-    return activeTheme[prefix];
+  // Handle special cases first
+  if (prefix === 'arbitrary' && activeTheme.arbitrary) {
+    return activeTheme.arbitrary;
+  }
+
+  if (prefix === 'important' && activeTheme.important) {
+    return activeTheme.important;
+  }
+
+  // Check for exact match in prefix section
+  if (activeTheme.prefix?.[prefix]) {
+    return activeTheme.prefix[prefix];
   }
 
   // Check for prefix without ignored modifiers
   const cleanedPrefix = removeIgnoredModifiers(prefix);
-  if (cleanedPrefix !== prefix && activeTheme[cleanedPrefix]) {
-    return activeTheme[cleanedPrefix];
+  if (cleanedPrefix !== prefix && activeTheme.prefix?.[cleanedPrefix]) {
+    return activeTheme.prefix[cleanedPrefix];
   }
 
   // Check for prefix without group name
   if (cleanedPrefix.includes('/')) {
     const basePrefix = cleanedPrefix.split('/')[0];
-
-    if (activeTheme[basePrefix]) {
-      return activeTheme[basePrefix];
+    if (activeTheme.prefix?.[basePrefix]) {
+      return activeTheme.prefix[basePrefix];
     }
   }
 
-  // Check for arbitrary prefix
-  if (activeTheme.ARBITRARY && /^\[.+\]$/.test(prefix)) {
-    return activeTheme.ARBITRARY;
+  // Check for arbitrary prefix (starts and ends with brackets)
+  if (/^\[.+\]$/.test(prefix) && activeTheme.arbitrary) {
+    return activeTheme.arbitrary;
   }
 
-  // Check for matching wildcard
+  // Check for matching wildcard in prefix section
   const parts = prefix.split('-');
   if (parts.length > 1 && parts[1]) {
     const basePrefix = parts[0];
     const wildcardKey = `${basePrefix}-*`;
-    if (activeTheme[wildcardKey]) {
-      return activeTheme[wildcardKey];
+    if (activeTheme.prefix?.[wildcardKey]) {
+      return activeTheme.prefix[wildcardKey];
+    }
+  }
+
+  // Check for base class match
+  if (activeTheme.base?.[prefix]) {
+    return activeTheme.base[prefix];
+  }
+
+  // Check for base class without ignored modifiers
+  if (cleanedPrefix !== prefix && activeTheme.base?.[cleanedPrefix]) {
+    return activeTheme.base[cleanedPrefix];
+  }
+
+  // Check for matching wildcard in base section
+  if (activeTheme.base) {
+    for (const [pattern, config] of Object.entries(activeTheme.base)) {
+      if (pattern.endsWith('-*')) {
+        const basePattern = pattern.slice(0, -1); // Remove '*'
+        if (prefix.startsWith(basePattern)) {
+          return config;
+        }
+        // Also check cleaned prefix
+        if (cleanedPrefix !== prefix && cleanedPrefix.startsWith(basePattern)) {
+          return config;
+        }
+      }
     }
   }
 

@@ -39,13 +39,12 @@ export class ThemeService {
       const baseTheme = this.themeRegistry.get(name) || {};
 
       // Create new theme by merging custom config over base theme
-      const mergedTheme = { ...baseTheme };
-      Object.entries(theme).forEach(([prefix, config]) => {
-        mergedTheme[prefix] = {
-          ...baseTheme[prefix],
-          ...config,
-        };
-      });
+      const mergedTheme: Theme = {
+        arbitrary: { ...baseTheme.arbitrary, ...theme.arbitrary },
+        important: { ...baseTheme.important, ...theme.important },
+        prefix: { ...baseTheme.prefix, ...theme.prefix },
+        base: { ...baseTheme.base, ...theme.base },
+      };
 
       this.registerTheme(name, mergedTheme);
     });
@@ -56,7 +55,7 @@ export class ThemeService {
       this.outputService.error(
         `Theme '${selectedTheme}' not found. Available themes: ${Array.from(this.themeRegistry.keys()).join(', ')}`
       );
-      return {};
+      return { arbitrary: undefined, important: undefined, prefix: {}, base: {} };
     }
     return { ...theme };
   }

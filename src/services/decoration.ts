@@ -24,7 +24,7 @@ export class DecorationService {
    * @param config The styling configuration for the prefix
    * @returns TextEditorDecorationType for the prefix
    */
-  getDecorationForPrefix(prefix: string, config: PrefixConfig): vscode.TextEditorDecorationType {
+  getDecorationForPrefix(prefix: string, config: ClassConfig): vscode.TextEditorDecorationType {
     if (!this.decorationTypes.has(prefix)) {
       this.decorationTypes.set(
         prefix,

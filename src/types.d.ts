@@ -1,4 +1,4 @@
-interface PrefixConfig {
+interface ClassConfig {
   color?: string;
   enabled?: boolean;
   fontWeight?:
@@ -25,13 +25,10 @@ interface PrefixConfig {
 }
 
 interface Theme {
-  ARBITRARY?: PrefixConfig;
-  [key: string]: PrefixConfig | undefined;
-}
-
-interface RegexPattern {
-  regex: string;
-  enabled: boolean;
+  arbitrary?: ClassConfig;
+  important?: ClassConfig;
+  prefix?: Record<string, ClassConfig>;
+  base?: Record<string, ClassConfig>;
 }
 
 interface ExtensionAPI {
