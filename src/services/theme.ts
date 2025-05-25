@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import themes from '../themes';
+import { ConfigurationManager } from './config';
 import { OutputService } from './output';
 
 /**
@@ -12,6 +13,7 @@ import { OutputService } from './output';
 export class ThemeService {
   private activeTheme: Theme;
   private outputService = OutputService.getInstance();
+  private configManager = ConfigurationManager.getInstance();
   private themeRegistry = new Map<string, Theme>();
 
   /**

@@ -16,7 +16,7 @@ export class ExtensionService {
   private activeTheme: Theme;
   private outputService = OutputService.getInstance();
   private updateTimeout: NodeJS.Timeout | undefined;
-  private updateDelay = 300; // Increased delay for better performance
+  private typingDelay = 300; // Delay for typing to avoid excessive updates
   private isProcessing = false; // Prevent concurrent processing
 
   /**
@@ -54,8 +54,9 @@ export class ExtensionService {
    * Updates decorations for the current editor
    * Handles file extension filtering and pattern matching
    * @param editor The VS Code text editor to update
+   * @param immediate Whether to bypass debouncing (default: false)
    */
-  private updateDecorations(editor: vscode.TextEditor) {
+  private updateDecorations(editor: vscode.TextEditor, immediate: boolean = false) {
     if (
       !editor ||
       editor.document.uri.scheme === 'output' ||
@@ -71,7 +72,8 @@ export class ExtensionService {
     }
 
     // Debounce update with concurrency protection
-    this.updateTimeout = setTimeout(() => {
+    const delay = immediate ? 0 : this.typingDelay;
+    this.updateTimeout = setTimeout(async () => {
       if (this.isProcessing) {
         return; // Skip if already processing
       }
@@ -98,7 +100,7 @@ export class ExtensionService {
       } finally {
         this.isProcessing = false;
       }
-    }, this.updateDelay);
+    }, delay);
   }
 
   /**
@@ -115,7 +117,7 @@ export class ExtensionService {
           await this.themeService.selectTheme(editor, () => {
             this.decorationService.clearDecorations();
             this.activeTheme = this.themeService.getCurrentTheme();
-            this.updateDecorations(editor);
+            this.updateDecorations(editor, true); // Immediate for theme changes
           });
         }
       })
@@ -129,12 +131,9 @@ export class ExtensionService {
           this.themeService.updateActiveTheme();
           this.activeTheme = this.themeService.getCurrentTheme();
 
-          // Reload tokenizer configuration for pattern changes
-          this.tokenizerService.reloadConfiguration();
-
           const editor = vscode.window.activeTextEditor;
           if (editor) {
-            this.updateDecorations(editor);
+            this.updateDecorations(editor, true); // Immediate for config changes
           }
         }
       })
@@ -144,14 +143,14 @@ export class ExtensionService {
     context.subscriptions.push(
       vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor) {
-          this.updateDecorations(editor);
+          this.updateDecorations(editor, true); // Immediate for editor changes
         }
       }),
 
       vscode.workspace.onDidChangeTextDocument((event) => {
         const editor = vscode.window.activeTextEditor;
         if (editor && event.document === editor.document) {
-          this.updateDecorations(editor);
+          this.updateDecorations(editor); // Debounced for typing
         }
       })
     );
@@ -183,7 +182,7 @@ export class ExtensionService {
     if (vscode.window.activeTextEditor) {
       // Ensure we have the latest theme
       this.activeTheme = this.themeService.getActiveTheme();
-      this.updateDecorations(vscode.window.activeTextEditor);
+      this.updateDecorations(vscode.window.activeTextEditor, true); // Immediate for initialization
     }
   }
 

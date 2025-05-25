@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import { ConfigurationManager } from './config';
 
 /**
  * Removes ignored modifiers from the prefix
@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
  * @returns The prefix with ignored modifiers removed
  */
 const removeIgnoredModifiers = (prefix: string) => {
-  const config = vscode.workspace.getConfiguration('tailwindRainbow');
-  const ignoredPrefixModifiers = config.get<string[]>('ignoredPrefixModifiers', []);
+  const configManager = ConfigurationManager.getInstance();
+  const ignoredPrefixModifiers = configManager.getIgnoredPrefixModifiers();
   let cleanedPrefix = prefix;
   if (ignoredPrefixModifiers.length > 0) {
     for (const ignoredModifier of ignoredPrefixModifiers) {

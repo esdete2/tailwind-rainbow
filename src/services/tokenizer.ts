@@ -1,6 +1,24 @@
 import * as vscode from 'vscode';
 
+import { ConfigurationManager } from './config';
 import { getThemeConfigForPrefix } from './utils';
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+const PERFORMANCE_CONSTANTS = {
+  MAX_FILE_SIZE: 1_000_000,
+  MAX_CONTENT_LENGTH: 5_000,
+  CONTENT_VALIDATION_THRESHOLD: 100,
+  CONTEXT_WINDOW_SIZE: 100,
+  AFTER_TOKEN_CONTEXT_SIZE: 50,
+  EXTENDED_CONTEXT_SIZE: 300,
+  APPLY_DIRECTIVE_LENGTH: 6, // '@apply'.length
+  COMMENT_SKIP_LENGTH: 2, // for '//' and similar
+  SINGLE_CHAR_SKIP: 1,
+  ESCAPE_CHAR_SKIP: 2, // for '\' + next char
+} as const;
 
 /**
  * Represents a token found during document parsing
@@ -31,61 +49,10 @@ export interface ClassToken {
  * Uses string-based parsing for optimal performance and configurable pattern matching
  */
 export class TokenizerService {
-  private classIdentifiers: string[] = [];
-  private classFunctions: string[] = [];
-  private templatePatterns: string[] = [];
-  private contextPatterns: string[] = [];
+  private configManager: ConfigurationManager;
 
   constructor() {
-    this.loadConfiguration();
-  }
-
-  /**
-   * Loads configuration from VS Code workspace settings
-   */
-  private loadConfiguration(): void {
-    const config = vscode.workspace.getConfiguration('tailwindRainbow');
-
-    this.classIdentifiers = config.get<string[]>('classIdentifiers', [
-      'class',
-      'className',
-      'class:',
-      'className:',
-      'classlist',
-      'classes',
-      'css',
-      'style',
-    ]);
-
-    this.classFunctions = config.get<string[]>('classFunctions', [
-      'cn',
-      'clsx',
-      'cva',
-      'classNames',
-      'classList',
-      'classnames',
-      'twMerge',
-      'tw',
-      'cls',
-      'cc',
-      'cx',
-      'classname',
-      'styled',
-      'css',
-      'theme',
-      'variants',
-    ]);
-
-    this.templatePatterns = config.get<string[]>('templatePatterns', ['class', '${', 'tw`', 'css`', 'styled']);
-
-    this.contextPatterns = config.get<string[]>('contextPatterns', ['variants', 'cva', 'class', 'css', 'style']);
-  }
-
-  /**
-   * Reloads configuration when workspace settings change
-   */
-  public reloadConfiguration(): void {
-    this.loadConfiguration();
+    this.configManager = ConfigurationManager.getInstance();
   }
 
   /**
@@ -123,14 +90,69 @@ export class TokenizerService {
   }
 
   /**
+   * Helper method to parse line comments (// or #)
+   * @param text Document text
+   * @param start Start position
+   * @returns Object with end position and token
+   */
+  private parseLineComment(text: string, start: number): { endPos: number; token: Token } {
+    let endPos = start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
+    while (endPos < text.length && text[endPos] !== '\n' && text[endPos] !== '\r') {
+      endPos++;
+    }
+
+    return {
+      endPos,
+      token: {
+        type: 'comment',
+        content: text.slice(start, endPos),
+        start,
+        end: endPos,
+      },
+    };
+  }
+
+  /**
+   * Helper method to parse string literals with quote handling
+   * @param text Document text
+   * @param start Start position
+   * @param quote Quote character
+   * @returns Object with end position and content
+   */
+  private parseStringLiteral(text: string, start: number, quote: string): { endPos: number; content: string } {
+    let i = start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
+
+    while (i < text.length) {
+      if (text[i] === '\\' && i + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP < text.length) {
+        i += PERFORMANCE_CONSTANTS.ESCAPE_CHAR_SKIP; // Skip escaped character
+      } else if (text[i] === quote) {
+        i++;
+        break;
+      } else {
+        i++;
+      }
+    }
+
+    const content = text.slice(
+      start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
+      i - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP
+    );
+
+    return { endPos: i, content };
+  }
+
+  /**
    * Checks if a string token is likely to contain class names
    * @param text Document text
    * @param token String token to check
    * @returns True if the token is likely to contain class names
    */
   private isClassContext(text: string, token: Token): boolean {
-    const beforeToken = text.slice(Math.max(0, token.start - 100), token.start);
-    const afterToken = text.slice(token.end, Math.min(text.length, token.end + 50));
+    const beforeToken = text.slice(Math.max(0, token.start - PERFORMANCE_CONSTANTS.CONTEXT_WINDOW_SIZE), token.start);
+    const afterToken = text.slice(
+      token.end,
+      Math.min(text.length, token.end + PERFORMANCE_CONSTANTS.AFTER_TOKEN_CONTEXT_SIZE)
+    );
 
     // Process template literals as they commonly contain dynamic class expressions
     if (token.type === 'template') {
@@ -141,7 +163,7 @@ export class TokenizerService {
     if (token.content.includes(':')) {
       // Identify prefix patterns by detecting colons within class names
       const colonIndex = token.content.indexOf(':');
-      if (colonIndex > 0 && colonIndex < token.content.length - 1) {
+      if (colonIndex > 0 && colonIndex < token.content.length - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP) {
         return true;
       }
     }
@@ -153,26 +175,31 @@ export class TokenizerService {
 
     // Check for class attributes using configurable identifiers
     const beforeLower = beforeToken.toLowerCase();
+    const lowerCaseIdentifiers = this.configManager.getLowerCaseClassIdentifiers();
 
-    for (const identifier of this.classIdentifiers) {
-      if (
-        beforeLower.includes(identifier.toLowerCase() + '=') ||
-        beforeLower.includes(identifier.toLowerCase() + ':')
-      ) {
+    for (const identifier of lowerCaseIdentifiers) {
+      if (beforeLower.includes(identifier + '=') || beforeLower.includes(identifier + ':')) {
         return true;
       }
     }
 
-    // Check for class utility functions using configurable list
-    for (const func of this.classFunctions) {
-      if (beforeToken.includes(func + '(')) {
-        return true;
+    // Check for class utility functions using cached set for fast lookup
+    const classFunctionsSet = this.configManager.getClassFunctionsSet();
+    // Extract function names from beforeToken and check against set
+    const functionMatches = beforeToken.match(/\b(\w+)\s*\(/g);
+    if (functionMatches) {
+      for (const match of functionMatches) {
+        const funcName = match.slice(0, -1).trim(); // Remove '(' and whitespace
+        if (classFunctionsSet.has(funcName)) {
+          return true;
+        }
       }
     }
 
-    // Check for template literals using configurable patterns
+    // Check for template literals using cached patterns
     if (token.quote === '`') {
-      for (const pattern of this.templatePatterns) {
+      const templatePatterns = this.configManager.getTemplatePatterns();
+      for (const pattern of templatePatterns) {
         if (beforeToken.includes(pattern)) {
           return true;
         }
@@ -188,17 +215,26 @@ export class TokenizerService {
       trimmedBefore.endsWith(':')
     ) {
       // Check for class-related context patterns in extended scope
-      const extendedBefore = text.slice(Math.max(0, token.start - 300), token.start);
+      const extendedBefore = text.slice(
+        Math.max(0, token.start - PERFORMANCE_CONSTANTS.EXTENDED_CONTEXT_SIZE),
+        token.start
+      );
 
-      // Detect utility function calls
-      for (const func of this.classFunctions) {
-        if (extendedBefore.includes(func + '(')) {
-          return true;
+      // Detect utility function calls using cached set
+      const classFunctionsSet = this.configManager.getClassFunctionsSet();
+      const functionMatches = extendedBefore.match(/\b(\w+)\s*\(/g);
+      if (functionMatches) {
+        for (const match of functionMatches) {
+          const funcName = match.slice(0, -1).trim();
+          if (classFunctionsSet.has(funcName)) {
+            return true;
+          }
         }
       }
 
-      // Match context patterns using configurable identifiers
-      for (const pattern of this.contextPatterns) {
+      // Match context patterns using cached identifiers
+      const contextPatterns = this.configManager.getContextPatterns();
+      for (const pattern of contextPatterns) {
         if (extendedBefore.includes(pattern)) {
           return true;
         }
@@ -227,22 +263,14 @@ export class TokenizerService {
     while (i < length) {
       const char = text[i];
 
-      // Detect comments using helper method
-      if (char === '/' && i + 1 < length) {
-        const nextChar = text[i + 1];
+      // Detect comments using helper methods
+      if (char === '/' && i + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP < length) {
+        const nextChar = text[i + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP];
         if (nextChar === '/') {
-          // C-style line comment - find end of line
-          let endPos = i + 2;
-          while (endPos < length && text[endPos] !== '\n' && text[endPos] !== '\r') {
-            endPos++;
-          }
-          tokens.push({
-            type: 'comment',
-            content: text.slice(i, endPos),
-            start: i,
-            end: endPos,
-          });
-          i = endPos;
+          // C-style line comment
+          const result = this.parseLineComment(text, i);
+          tokens.push(result.token);
+          i = result.endPos;
           continue;
         } else if (nextChar === '*') {
           // C-style block comment
@@ -252,18 +280,10 @@ export class TokenizerService {
           continue;
         }
       } else if (char === '#') {
-        // Shell-style line comment - find end of line
-        let endPos = i + 1;
-        while (endPos < length && text[endPos] !== '\n' && text[endPos] !== '\r') {
-          endPos++;
-        }
-        tokens.push({
-          type: 'comment',
-          content: text.slice(i, endPos),
-          start: i,
-          end: endPos,
-        });
-        i = endPos;
+        // Shell-style line comment
+        const result = this.parseLineComment(text, i);
+        tokens.push(result.token);
+        i = result.endPos;
         continue;
       } else if (char === '<' && text.startsWith('<!--', i)) {
         // HTML comment block
@@ -286,33 +306,20 @@ export class TokenizerService {
 
         // Process template literals for dynamic class expressions
         if (quote === '`') {
-          i++;
-
-          // Find closing quote, handling escapes
-          while (i < length) {
-            if (text[i] === '\\' && i + 1 < length) {
-              i += 2; // Skip escaped character
-            } else if (text[i] === quote) {
-              i++;
-              break;
-            } else {
-              i++;
-            }
-          }
-
-          const content = text.slice(start + 1, i - 1);
+          const parseResult = this.parseStringLiteral(text, start, quote);
           tokens.push({
             type: 'template',
-            content,
-            start: start + 1,
-            end: i - 1,
+            content: parseResult.content,
+            start: start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
+            end: parseResult.endPos - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
             quote,
           });
+          i = parseResult.endPos;
           continue;
         }
 
         // Analyze context for regular string literals
-        const beforeQuote = text.slice(Math.max(0, i - 100), i).trim();
+        const beforeQuote = text.slice(Math.max(0, i - PERFORMANCE_CONSTANTS.CONTEXT_WINDOW_SIZE), i).trim();
         const hasAttributeContext =
           beforeQuote.endsWith('=') ||
           beforeQuote.endsWith('={') ||
@@ -324,28 +331,15 @@ export class TokenizerService {
 
         // Only process strings in attribute or function contexts
         if (hasAttributeContext) {
-          i++;
-
-          // Find closing quote, handling escapes
-          while (i < length) {
-            if (text[i] === '\\' && i + 1 < length) {
-              i += 2; // Skip escaped character
-            } else if (text[i] === quote) {
-              i++;
-              break;
-            } else {
-              i++;
-            }
-          }
-
-          const content = text.slice(start + 1, i - 1);
+          const parseResult = this.parseStringLiteral(text, start, quote);
           tokens.push({
             type: 'string',
-            content,
-            start: start + 1,
-            end: i - 1,
+            content: parseResult.content,
+            start: start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
+            end: parseResult.endPos - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
             quote,
           });
+          i = parseResult.endPos;
           continue;
         } else {
           i++;
@@ -360,63 +354,6 @@ export class TokenizerService {
   }
 
   /**
-   * Checks if a word looks like a valid Tailwind class candidate
-   * @param word The word to check
-   * @returns True if it could be a valid class
-   */
-  private isValidClassCandidate(word: string): boolean {
-    // Avoid HTML fragments and other non-class content
-    if (word.length === 0 || word.length > 200) {
-      return false;
-    }
-
-    // For arbitrary values, be very permissive
-    if (word.includes('[') && word.includes(']')) {
-      return !word.includes(' ') && !word.includes('\t') && !word.includes('\n');
-    }
-
-    // Reject obvious non-class content
-    if (
-      word.startsWith('//') ||
-      word.startsWith('/*') ||
-      word.includes('*/') ||
-      word.includes('-->') ||
-      word.includes('<') ||
-      word.includes('>')
-    ) {
-      return false;
-    }
-
-    // For regular classes, use stricter validation
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      const code = char.charCodeAt(0);
-
-      if (
-        !(
-          (code >= 48 && code <= 57) ||
-          (code >= 65 && code <= 90) ||
-          (code >= 97 && code <= 122) ||
-          char === '-' ||
-          char === '_' ||
-          char === ':' ||
-          char === '/' ||
-          char === '.' ||
-          char === '#' ||
-          char === '!' ||
-          char === '%' ||
-          char === '*'
-        )
-      ) {
-        return false;
-      }
-    }
-
-    // Don't allow quotes in regular classes
-    return !word.includes('"') && !word.includes("'");
-  }
-
-  /**
    * Processes class tokens from string/template content (optimized)
    * @param content String content to process
    * @param startOffset Offset in the document
@@ -427,13 +364,17 @@ export class TokenizerService {
     const classTokens: ClassToken[] = [];
 
     // Early return for very large content
-    if (content.length > 5000) {
+    if (content.length > PERFORMANCE_CONSTANTS.MAX_CONTENT_LENGTH) {
       return classTokens;
     }
 
     // If no colons, do a quick validation to avoid processing non-class content
     if (!content.includes(':')) {
-      if (content.length > 100 && !content.includes('-') && !content.includes('[')) {
+      if (
+        content.length > PERFORMANCE_CONSTANTS.CONTENT_VALIDATION_THRESHOLD &&
+        !content.includes('-') &&
+        !content.includes('[')
+      ) {
         return classTokens;
       }
     }
@@ -459,7 +400,7 @@ export class TokenizerService {
       } else if ((isWhitespace || isHtmlChar) && wordStart !== -1) {
         const word = content.slice(wordStart, i).trim();
 
-        if (word && this.isValidClassCandidate(word)) {
+        if (word && word.length > 0) {
           const partTokens = this.processClassPart(word, startOffset + wordStart, activeTheme);
           classTokens.push(...partTokens);
         }
@@ -487,8 +428,9 @@ export class TokenizerService {
     // Look for class attributes using configurable patterns
     const lowerContent = content.toLowerCase();
 
-    // Generate class attribute patterns from configuration
-    const classPatterns = this.classIdentifiers.map((id) => id.toLowerCase() + '=');
+    // Generate class attribute patterns from cached configuration
+    const lowerCaseIdentifiers = this.configManager.getLowerCaseClassIdentifiers();
+    const classPatterns = lowerCaseIdentifiers.map((id) => id + '=');
 
     for (const pattern of classPatterns) {
       let searchIndex = 0;
@@ -510,26 +452,19 @@ export class TokenizerService {
 
         if (quoteStart < content.length && (content[quoteStart] === '"' || content[quoteStart] === "'")) {
           const quote = content[quoteStart];
-          const valueStart = quoteStart + 1;
+          const valueStart = quoteStart + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
 
-          // Find the closing quote
-          let valueEnd = valueStart;
-          while (valueEnd < content.length && content[valueEnd] !== quote) {
-            if (content[valueEnd] === '\\' && valueEnd + 1 < content.length) {
-              valueEnd += 2;
-            } else {
-              valueEnd++;
-            }
-          }
+          // Find the closing quote using helper method
+          const parseResult = this.parseStringLiteral(content, quoteStart, quote);
+          const valueEnd = parseResult.endPos - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
 
-          if (valueEnd < content.length) {
-            const classValue = content.slice(valueStart, valueEnd);
-            const nestedTokens = this.processClassContent(classValue, startOffset + valueStart, activeTheme);
+          if (valueEnd >= valueStart) {
+            const nestedTokens = this.processClassContent(parseResult.content, startOffset + valueStart, activeTheme);
             classTokens.push(...nestedTokens);
           }
         }
 
-        searchIndex = patternIndex + 1;
+        searchIndex = patternIndex + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
       }
     }
 
@@ -631,7 +566,7 @@ export class TokenizerService {
 
     // Handle important flag
     if (classPart.startsWith('!')) {
-      const afterImportant = classPart.slice(1);
+      const afterImportant = classPart.slice(PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP);
       if (afterImportant.startsWith(':') || afterImportant.endsWith(':')) {
         return tokens;
       }
@@ -643,13 +578,13 @@ export class TokenizerService {
           type: 'important',
           content: '!',
           start: startOffset,
-          end: startOffset + 1,
+          end: startOffset + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
           themeKey: 'important',
           rangeKey: 'important',
           config: config,
         });
       }
-      currentPos = 1;
+      currentPos = PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
     }
 
     const remainingClass = classPart.slice(currentPos);
@@ -659,7 +594,7 @@ export class TokenizerService {
 
     const fullClass = classPart.slice(currentPos);
 
-    if (parts.length === 1) {
+    if (parts.length === PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP) {
       // No prefixes
       const className = parts[0];
       let themeKey: string;
@@ -687,7 +622,7 @@ export class TokenizerService {
         if (!config && activeTheme.base) {
           for (const [pattern, patternConfig] of Object.entries(activeTheme.base)) {
             if (pattern.endsWith('-*')) {
-              const basePattern = pattern.slice(0, -2);
+              const basePattern = pattern.slice(0, -PERFORMANCE_CONSTANTS.COMMENT_SKIP_LENGTH);
               if (className.startsWith(basePattern + '-')) {
                 config = patternConfig;
                 break;
@@ -710,15 +645,15 @@ export class TokenizerService {
       }
     } else {
       // Has prefixes
-      const prefixes = parts.slice(0, -1);
-      const baseClass = parts[parts.length - 1];
+      const prefixes = parts.slice(0, -PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP);
+      const baseClass = parts[parts.length - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP];
 
       // Determine if this is a true multi-prefix case or a single prefix with arbitrary value
       // Multi-prefix: dark:sm:hover:text-blue-500 (multiple semantic prefixes)
       // Single prefix + arbitrary: before:content-['test'] (one prefix + base class with arbitrary value)
 
       const hasArbitraryValue = baseClass.includes('[') && baseClass.includes(']');
-      const isMultiPrefix = prefixes.length > 1 && !hasArbitraryValue;
+      const isMultiPrefix = prefixes.length > PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP && !hasArbitraryValue;
 
       if (isMultiPrefix) {
         // Multi-prefix case: color each prefix individually
@@ -734,12 +669,12 @@ export class TokenizerService {
             // For multi-prefix case, include the colon after each prefix
             // For the last prefix, include the base class as well
             let prefixEnd: number;
-            if (i === prefixes.length - 1) {
+            if (i === prefixes.length - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP) {
               // Last prefix: include the base class
               prefixEnd = currentPos + classPart.length;
             } else {
               // Intermediate prefix: include just the prefix and colon
-              prefixEnd = currentPrefixStart + prefix.length + 1;
+              prefixEnd = currentPrefixStart + prefix.length + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
             }
 
             tokens.push({
@@ -754,7 +689,7 @@ export class TokenizerService {
           }
 
           // Move to next prefix position (add 1 for the colon)
-          currentPrefixStart += prefix.length + 1;
+          currentPrefixStart += prefix.length + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
         }
       } else {
         // Single prefix case: color the entire class with the prefix color
@@ -812,7 +747,7 @@ export class TokenizerService {
       if (applyIndex === -1) break;
 
       // Find the start of class content (skip whitespace after @apply)
-      let contentStart = applyIndex + 6; // '@apply'.length
+      let contentStart = applyIndex + PERFORMANCE_CONSTANTS.APPLY_DIRECTIVE_LENGTH;
       while (contentStart < text.length && /\s/.test(text[contentStart])) {
         contentStart++;
       }
@@ -833,7 +768,7 @@ export class TokenizerService {
         classTokens.push(...tokens);
       }
 
-      searchStart = contentEnd + 1;
+      searchStart = contentEnd + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
     }
 
     return classTokens;
@@ -849,8 +784,7 @@ export class TokenizerService {
     const text = editor.document.getText();
 
     // Early termination for very large files
-    const config = vscode.workspace.getConfiguration('tailwindRainbow');
-    const maxFileSize = config.get<number>('maxFileSize', 1_000_000);
+    const maxFileSize = this.configManager.getMaxFileSize();
 
     if (text.length > maxFileSize) {
       console.warn(
