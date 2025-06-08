@@ -19,7 +19,7 @@ const removeIgnoredModifiers = (prefix: string) => {
 };
 
 /**
- * Gets the theme configuration for a given prefix
+ * Gets the theme configuration for a prefix (used with colons)
  * @param activeTheme The active theme configuration
  * @param prefix The prefix to search for
  * @returns The theme configuration for the prefix
@@ -39,7 +39,7 @@ export const getThemeConfigForPrefix = (activeTheme: Theme, prefix: string) => {
     return activeTheme.prefix[prefix];
   }
 
-  // Check for prefix without ignored modifiers
+  // Check for prefix without ignored modifiers (only for prefixes)
   const cleanedPrefix = removeIgnoredModifiers(prefix);
   if (cleanedPrefix !== prefix && activeTheme.prefix?.[cleanedPrefix]) {
     return activeTheme.prefix[cleanedPrefix];
@@ -58,38 +58,49 @@ export const getThemeConfigForPrefix = (activeTheme: Theme, prefix: string) => {
     return activeTheme.arbitrary;
   }
 
-  // Check for matching wildcard in prefix section
+  // Check for matching wildcard in prefix section only
   const parts = prefix.split('-');
-  if (parts.length > 1 && parts[1]) {
+  if (parts.length > 1 && activeTheme.prefix) {
     const basePrefix = parts[0];
     const wildcardKey = `${basePrefix}-*`;
-    if (activeTheme.prefix?.[wildcardKey]) {
+    if (activeTheme.prefix[wildcardKey]) {
       return activeTheme.prefix[wildcardKey];
     }
   }
 
-  // Check for base class match
-  if (activeTheme.base?.[prefix]) {
-    return activeTheme.base[prefix];
+  return null;
+};
+
+/**
+ * Gets the theme configuration for a base class (standalone class without colon)
+ * @param activeTheme The active theme configuration
+ * @param className The class name to search for
+ * @returns The theme configuration for the class
+ */
+export const getThemeConfigForBaseClass = (activeTheme: Theme, className: string) => {
+  // Handle special cases first
+  if (className === 'arbitrary' && activeTheme.arbitrary) {
+    return activeTheme.arbitrary;
   }
 
-  // Check for base class without ignored modifiers
-  if (cleanedPrefix !== prefix && activeTheme.base?.[cleanedPrefix]) {
-    return activeTheme.base[cleanedPrefix];
+  // Check for exact match in base section
+  if (activeTheme.base?.[className]) {
+    return activeTheme.base[className];
   }
 
-  // Check for matching wildcard in base section
+  // Check for arbitrary class (starts and ends with brackets)
+  if (className.startsWith('[') && className.endsWith(']') && activeTheme.arbitrary) {
+    return activeTheme.arbitrary;
+  }
+
+  // Check for matching wildcard in base section only
   if (activeTheme.base) {
-    for (const [pattern, config] of Object.entries(activeTheme.base)) {
-      if (pattern.endsWith('-*')) {
-        const basePattern = pattern.slice(0, -1); // Remove '*'
-        if (prefix.startsWith(basePattern)) {
-          return config;
-        }
-        // Also check cleaned prefix
-        if (cleanedPrefix !== prefix && cleanedPrefix.startsWith(basePattern)) {
-          return config;
-        }
+    const parts = className.split('-');
+    if (parts.length > 1 && activeTheme.base) {
+      const basePrefix = parts[0];
+      const wildcardKey = `${basePrefix}-*`;
+      if (activeTheme.base[wildcardKey]) {
+        return activeTheme.base[wildcardKey];
       }
     }
   }

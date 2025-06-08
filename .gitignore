@@ -1,6 +1,6 @@
 out
 dist
 node_modules
-benchmark
+/benchmark
 .vscode-test/
 *.vsix

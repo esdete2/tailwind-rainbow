@@ -18,11 +18,11 @@ suite('Tailwind Class Coloring Test Suite', () => {
     editor = await vscode.window.showTextDocument(doc);
   }
 
-  function getPrefixRanges() {
-    const prefixRanges = api.getPrefixRanges(editor);
+  function getTokenRanges() {
+    const tokenRanges = api.getTokenRanges(editor);
 
     const tableData = [];
-    for (const [key, value] of prefixRanges.entries()) {
+    for (const [key, value] of tokenRanges.entries()) {
       tableData.push({
         prefix: key,
         count: value.length,
@@ -30,14 +30,10 @@ suite('Tailwind Class Coloring Test Suite', () => {
       });
     }
     console.table(tableData);
-    return prefixRanges;
+    return tokenRanges;
   }
 
-  function verifyRanges(
-    content: string,
-    prefixRanges: Map<string, vscode.Range[]>,
-    expectedColoredPartials?: string[]
-  ) {
+  function verifyRanges(content: string, tokenRanges: Map<string, vscode.Range[]>, expectedColoredPartials?: string[]) {
     // Helper to get the text at a specific range
     function getTextAtRange(range: vscode.Range): string {
       const lines = content.split('\n');
@@ -53,7 +49,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
 
     // Collect all ranges in order for comparison with expected partials
     const allRanges: { prefix: string; range: vscode.Range; rangeIndex: number }[] = [];
-    for (const [prefix, ranges] of prefixRanges.entries()) {
+    for (const [prefix, ranges] of tokenRanges.entries()) {
       ranges.forEach((range, rangeIndex) => {
         allRanges.push({ prefix, range, rangeIndex });
       });
@@ -68,7 +64,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
     });
 
     // For each prefix, verify its ranges
-    for (const [prefix, ranges] of prefixRanges.entries()) {
+    for (const [prefix, ranges] of tokenRanges.entries()) {
       ranges.forEach((range, i) => {
         const text = getTextAtRange(range);
         console.log(
@@ -91,7 +87,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
         // Each range should contain its prefix (special case for important and base classes)
         if (prefix === 'important') {
           assert.ok(text === '!', `Range for ${prefix} should be "!" but got "${text}"`);
-        } else if (text.includes(':')) {
+        } else if (text.includes(':') && !text.startsWith('[') && !text.endsWith(']')) {
           // This is a prefixed class (contains colon)
           assert.ok(text.includes(prefix + ':'), `Range for ${prefix} should contain "${prefix}:" but got "${text}"`);
         } else {
@@ -138,13 +134,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'lg:text-xl', 'lg:', 'hover:bg-red-500']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'lg:text-xl', 'lg:', 'hover:bg-red-500']);
   });
 
   it('should detect prefixes in single quotes', async function () {
@@ -152,13 +148,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'lg:text-xl']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'lg:text-xl']);
   });
 
   it('should detect prefixes in backticks', async function () {
@@ -166,13 +162,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'lg:text-xl']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'lg:text-xl']);
   });
 
   it('should detect prefixes in template literals and JSX expressions', async function () {
@@ -184,15 +180,15 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.strictEqual(prefixRanges.size, 4);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.strictEqual(tokenRanges.size, 4);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'lg:text-xl', 'md:bg-red-500', 'sm:text-white']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'lg:text-xl', 'md:bg-red-500', 'sm:text-white']);
   });
 
   it('should detect multiple instances of the same prefix', async function () {
@@ -200,13 +196,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.strictEqual(prefixRanges.size, 1);
-    assert.strictEqual(prefixRanges.get('hover')!.length, 2);
+    assert.ok(tokenRanges.has('hover'));
+    assert.strictEqual(tokenRanges.size, 1);
+    assert.strictEqual(tokenRanges.get('hover')!.length, 2);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'hover:text-white']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'hover:text-white']);
   });
 
   it('should handle nested quotes correctly', async function () {
@@ -218,17 +214,17 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('active'));
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.strictEqual(prefixRanges.size, 6);
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('active'));
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.strictEqual(tokenRanges.size, 6);
 
-    verifyRanges(content, prefixRanges, [
+    verifyRanges(content, tokenRanges, [
       'sm:bg-red-500',
       'hover:text-black',
       'lg:bg-red-500',
@@ -243,16 +239,16 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('dark'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('before'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.strictEqual(prefixRanges.size, 5);
+    assert.ok(tokenRanges.has('dark'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('before'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.strictEqual(tokenRanges.size, 5);
 
-    verifyRanges(content, prefixRanges, ['dark:', 'sm:', 'hover:', 'before:', 'focus:text-blue-500']);
+    verifyRanges(content, tokenRanges, ['dark:', 'sm:', 'hover:', 'before:', 'focus:text-blue-500']);
   });
 
   it('should handle basic arbitrary values', async function () {
@@ -260,13 +256,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('before'));
-    assert.ok(prefixRanges.has('after'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('before'));
+    assert.ok(tokenRanges.has('after'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ["before:content-['*']", "after:content-['>>']"]);
+    verifyRanges(content, tokenRanges, ["before:content-['*']", "after:content-['>>']"]);
   });
 
   it('should handle colons in arbitrary values', async function () {
@@ -274,12 +270,12 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('before'));
-    assert.strictEqual(prefixRanges.size, 1);
+    assert.ok(tokenRanges.has('before'));
+    assert.strictEqual(tokenRanges.size, 1);
 
-    verifyRanges(content, prefixRanges, ['before:content-[test:with:colons]']);
+    verifyRanges(content, tokenRanges, ['before:content-[test:with:colons]']);
   });
 
   it('should handle escaped quotes in arbitrary values', async function () {
@@ -287,13 +283,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('before'));
-    assert.ok(prefixRanges.has('hover'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('before'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['before:content-[\\"test\\"]', 'hover:text-xl']);
+    verifyRanges(content, tokenRanges, ['before:content-[\\"test\\"]', 'hover:text-xl']);
   });
 
   it('should handle ignored prefix modifiers', async function () {
@@ -301,12 +297,12 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('group-hover/button'));
-    assert.strictEqual(prefixRanges.size, 1);
+    assert.ok(tokenRanges.has('group-hover/button'));
+    assert.strictEqual(tokenRanges.size, 1);
 
-    verifyRanges(content, prefixRanges, ['group-hover/button:bg-blue-500']);
+    verifyRanges(content, tokenRanges, ['group-hover/button:bg-blue-500']);
   });
 
   it('should handle chained ignored prefix modifiers', async function () {
@@ -314,12 +310,12 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('peer-has-checked'));
-    assert.strictEqual(prefixRanges.size, 1);
+    assert.ok(tokenRanges.has('peer-has-checked'));
+    assert.strictEqual(tokenRanges.size, 1);
 
-    verifyRanges(content, prefixRanges, ['peer-has-checked:bg-blue-500']);
+    verifyRanges(content, tokenRanges, ['peer-has-checked:bg-blue-500']);
   });
 
   it('should handle wildcard patterns', async function () {
@@ -327,13 +323,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('min-[1920px]'));
-    assert.ok(prefixRanges.has('max-sm'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('min-[1920px]'));
+    assert.ok(tokenRanges.has('max-sm'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['min-[1920px]:max-w-sm', 'max-sm:w-full']);
+    verifyRanges(content, tokenRanges, ['min-[1920px]:max-w-sm', 'max-sm:w-full']);
   });
 
   it('should handle arbitrary prefixes', async function () {
@@ -341,12 +337,12 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('[&.is-dragging]'));
-    assert.strictEqual(prefixRanges.size, 1);
+    assert.ok(tokenRanges.has('[&.is-dragging]'));
+    assert.strictEqual(tokenRanges.size, 1);
 
-    verifyRanges(content, prefixRanges, ['[&.is-dragging]:cursor-grabbing']);
+    verifyRanges(content, tokenRanges, ['[&.is-dragging]:cursor-grabbing']);
   });
 
   it('should handle important modifier', async function () {
@@ -354,12 +350,12 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('important'));
-    assert.strictEqual(prefixRanges.size, 1);
+    assert.ok(tokenRanges.has('important'));
+    assert.strictEqual(tokenRanges.size, 1);
 
-    verifyRanges(content, prefixRanges, ['!']);
+    verifyRanges(content, tokenRanges, ['!']);
   });
 
   it('should handle mixed quotes and escaped content', async function () {
@@ -367,13 +363,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['hover:text-xl', 'sm:flex']);
+    verifyRanges(content, tokenRanges, ['hover:text-xl', 'sm:flex']);
   });
 
   it('should handle multiple lines', async function () {
@@ -386,13 +382,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'lg:text-xl']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'lg:text-xl']);
   });
 
   it('should ignore invalid prefixes', async function () {
@@ -400,10 +396,10 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.strictEqual(prefixRanges.size, 0);
-    verifyRanges(content, prefixRanges, []);
+    assert.strictEqual(tokenRanges.size, 0);
+    verifyRanges(content, tokenRanges, []);
   });
 
   it('should ignore standalone prefixes', async function () {
@@ -411,10 +407,10 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.strictEqual(prefixRanges.size, 0);
-    verifyRanges(content, prefixRanges, []);
+    assert.strictEqual(tokenRanges.size, 0);
+    verifyRanges(content, tokenRanges, []);
   });
 
   it('should ignore quotes outside of class names', async function () {
@@ -425,13 +421,13 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('after'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('after'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', "after:content-['Hi']"]);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', "after:content-['Hi']"]);
   });
 
   it('should ignore classes with double colons or starting/ending with colons', async function () {
@@ -439,10 +435,10 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.strictEqual(prefixRanges.size, 0);
-    verifyRanges(content, prefixRanges, []);
+    assert.strictEqual(tokenRanges.size, 0);
+    verifyRanges(content, tokenRanges, []);
   });
 
   it('should detect prefixes in utility functions', async function () {
@@ -458,17 +454,17 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('xl'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.strictEqual(prefixRanges.size, 6);
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('xl'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.strictEqual(tokenRanges.size, 6);
 
-    verifyRanges(content, prefixRanges, [
+    verifyRanges(content, tokenRanges, [
       'lg:bg-blue-500',
       'md:text-white',
       'sm:border-2',
@@ -487,17 +483,17 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('xl'));
-    assert.strictEqual(prefixRanges.size, 6);
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('xl'));
+    assert.strictEqual(tokenRanges.size, 6);
 
-    verifyRanges(content, prefixRanges, [
+    verifyRanges(content, tokenRanges, [
       'sm:border-2',
       'lg:shadow-lg',
       'hover:bg-blue-500',
@@ -536,14 +532,14 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.strictEqual(prefixRanges.size, 3);
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.strictEqual(tokenRanges.size, 3);
 
-    verifyRanges(content, prefixRanges, [
+    verifyRanges(content, tokenRanges, [
       'md:bg-black',
       'hover:bg-gray-800',
       'md:bg-white',
@@ -567,16 +563,16 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('xl'));
-    assert.ok(prefixRanges.has('hover'));
-    assert.strictEqual(prefixRanges.size, 5);
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('xl'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.strictEqual(tokenRanges.size, 5);
 
-    verifyRanges(content, prefixRanges, [
+    verifyRanges(content, tokenRanges, [
       'sm:p-4',
       'lg:p-8',
       'md:flex',
@@ -641,24 +637,23 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    // Test that base class patterns are detected
-    assert.ok(prefixRanges.has('bg-blue-500'));
-    assert.ok(prefixRanges.has('bg-red-300'));
-    assert.ok(prefixRanges.has('bg-gradient-to-r'));
-    assert.ok(prefixRanges.has('text-white'));
-    assert.ok(prefixRanges.has('text-gray-800'));
-    assert.ok(prefixRanges.has('text-xl'));
-    assert.ok(prefixRanges.has('p-4'));
-    assert.ok(prefixRanges.has('p-2'));
-    assert.ok(prefixRanges.has('p-8'));
-    assert.ok(prefixRanges.has('rounded-lg'));
-    assert.ok(prefixRanges.has('rounded-md'));
-    assert.ok(prefixRanges.has('rounded-full'));
-    assert.strictEqual(prefixRanges.size, 12);
+    assert.ok(tokenRanges.has('bg-blue-500'));
+    assert.ok(tokenRanges.has('bg-red-300'));
+    assert.ok(tokenRanges.has('bg-gradient-to-r'));
+    assert.ok(tokenRanges.has('text-white'));
+    assert.ok(tokenRanges.has('text-gray-800'));
+    assert.ok(tokenRanges.has('text-xl'));
+    assert.ok(tokenRanges.has('p-4'));
+    assert.ok(tokenRanges.has('p-2'));
+    assert.ok(tokenRanges.has('p-8'));
+    assert.ok(tokenRanges.has('rounded-lg'));
+    assert.ok(tokenRanges.has('rounded-md'));
+    assert.ok(tokenRanges.has('rounded-full'));
+    assert.strictEqual(tokenRanges.size, 12);
 
-    verifyRanges(content, prefixRanges, [
+    verifyRanges(content, tokenRanges, [
       'bg-blue-500',
       'text-white',
       'p-4',
@@ -731,24 +726,31 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    // Test that both prefixes and base classes are detected
-    assert.ok(prefixRanges.has('hover')); // prefix
-    assert.ok(prefixRanges.has('lg')); // prefix
-    assert.ok(prefixRanges.has('bg-white')); // base class
-    assert.ok(prefixRanges.has('border-gray-300')); // base class
-    assert.ok(prefixRanges.has('sm')); // prefix
-    assert.ok(prefixRanges.has('focus')); // prefix
-    assert.strictEqual(prefixRanges.size, 6);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('bg-blue-500'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('border-2'));
+    assert.ok(tokenRanges.has('bg-white'));
+    assert.ok(tokenRanges.has('border-gray-300'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('bg-red-500'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.ok(tokenRanges.has('border-blue-500'));
+    assert.strictEqual(tokenRanges.size, 10);
 
-    verifyRanges(content, prefixRanges, [
-      'hover:bg-blue-500',
-      'lg:border-2',
+    verifyRanges(content, tokenRanges, [
+      'hover:',
+      'bg-blue-500',
+      'lg:',
+      'border-2',
       'bg-white',
       'border-gray-300',
-      'sm:bg-red-500',
-      'focus:border-blue-500',
+      'sm:',
+      'bg-red-500',
+      'focus:',
+      'border-blue-500',
     ]);
 
     // Restore original configuration
@@ -756,64 +758,20 @@ suite('Tailwind Class Coloring Test Suite', () => {
     await config.update('theme', 'default', vscode.ConfigurationTarget.Global);
   });
 
-  it('should detect * prefix as a regular Tailwind prefix', async function () {
+  it('should detect * and ** prefix as a regular Tailwind prefix', async function () {
     const content = `
-      <div class="*:bg-blue-500 *:text-white"></div>
+      <div class="*:bg-blue-500 **:bg-blue-500"></div>
     `;
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    // The '*' prefix should be treated as a regular prefix from the default theme
-    assert.ok(prefixRanges.has('*'));
-    assert.strictEqual(prefixRanges.size, 1);
+    assert.ok(tokenRanges.has('*'));
+    assert.ok(tokenRanges.has('**'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['*:bg-blue-500', '*:text-white']);
-  });
-
-  it('should detect ** prefix as a regular Tailwind prefix', async function () {
-    const content = `
-      <div class="**:bg-blue-500 **:text-white"></div>
-    `;
-    console.log('Testing:', content);
-    await updateTestFile(content);
-
-    const prefixRanges = getPrefixRanges();
-
-    // The '**' prefix should be treated as a regular prefix from the default theme
-    assert.ok(prefixRanges.has('**'));
-    assert.strictEqual(prefixRanges.size, 1);
-
-    verifyRanges(content, prefixRanges, ['**:bg-blue-500', '**:text-white']);
-  });
-
-  it('should handle * and ** prefixes as regular Tailwind prefixes', async function () {
-    const content = `
-      <div class="*:bg-blue-500 **:text-white hover:p-4"></div>
-      <div class="sm:border-2 lg:shadow-lg *:rounded-lg"></div>
-    `;
-    console.log('Testing:', content);
-    await updateTestFile(content);
-
-    const prefixRanges = getPrefixRanges();
-
-    // *, **, hover, sm, lg are all explicitly defined prefixes
-    assert.ok(prefixRanges.has('*')); // universal selector prefix
-    assert.ok(prefixRanges.has('**')); // deep universal selector prefix
-    assert.ok(prefixRanges.has('hover')); // explicit config
-    assert.ok(prefixRanges.has('sm')); // explicit config
-    assert.ok(prefixRanges.has('lg')); // explicit config
-    assert.strictEqual(prefixRanges.size, 5);
-
-    verifyRanges(content, prefixRanges, [
-      '*:bg-blue-500',
-      '**:text-white',
-      'hover:p-4',
-      'sm:border-2',
-      'lg:shadow-lg',
-      '*:rounded-lg',
-    ]);
+    verifyRanges(content, tokenRanges, ['*:bg-blue-500', '**:bg-blue-500']);
   });
 
   it('should handle mixed * and ** prefixes with existing prefix and base classes', async function () {
@@ -865,19 +823,20 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    // Should detect explicit prefixes, * and ** prefixes, and base classes
-    assert.ok(prefixRanges.has('hover')); // explicit prefix
-    assert.ok(prefixRanges.has('*')); // universal selector prefix
-    assert.ok(prefixRanges.has('bg-red-300')); // base class pattern bg-*
-    assert.ok(prefixRanges.has('sm')); // explicit prefix
-    assert.ok(prefixRanges.has('**')); // deep universal selector prefix
-    assert.ok(prefixRanges.has('bg-white')); // base class pattern bg-*
-    assert.strictEqual(prefixRanges.size, 6);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('bg-blue-500'));
+    assert.ok(tokenRanges.has('*'));
+    assert.ok(tokenRanges.has('bg-red-300'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('**'));
+    assert.ok(tokenRanges.has('bg-white'));
+    assert.strictEqual(tokenRanges.size, 7);
 
-    verifyRanges(content, prefixRanges, [
-      'hover:bg-blue-500',
+    verifyRanges(content, tokenRanges, [
+      'hover:',
+      'bg-blue-500',
       '*:text-white',
       'bg-red-300',
       'sm:p-4',
@@ -904,14 +863,14 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('md'));
-    assert.strictEqual(prefixRanges.size, 3);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('md'));
+    assert.strictEqual(tokenRanges.size, 3);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-600', 'lg:text-xl', 'md:p-6']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-600', 'lg:text-xl', 'md:p-6']);
   });
 
   it('should detect classes in tw` template literals', async function () {
@@ -922,14 +881,14 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 3);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 3);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-600', 'focus:ring-2', 'lg:p-4']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-600', 'focus:ring-2', 'lg:p-4']);
   });
 
   it('should detect classes in className template literals', async function () {
@@ -943,15 +902,15 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 4);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 4);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-600', 'focus:ring-2', 'sm:opacity-75', 'lg:text-xl']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-600', 'focus:ring-2', 'sm:opacity-75', 'lg:text-xl']);
   });
 
   it('should detect classes in template literals with class attribute pattern', async function () {
@@ -965,15 +924,15 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.strictEqual(prefixRanges.size, 4);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.strictEqual(tokenRanges.size, 4);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'lg:text-xl', 'sm:text-sm', 'focus:outline-none']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'lg:text-xl', 'sm:text-sm', 'focus:outline-none']);
   });
 
   it('should detect classes in styled` template literals', async function () {
@@ -988,15 +947,15 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 4);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 4);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'focus:ring-2', 'sm:p-4', 'lg:p-6']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'focus:ring-2', 'sm:p-4', 'lg:p-6']);
   });
 
   it('should detect classes with css` template pattern', async function () {
@@ -1009,15 +968,15 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('focus'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 4);
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('focus'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 4);
 
-    verifyRanges(content, prefixRanges, ['hover:bg-blue-500', 'focus:ring-2', 'sm:p-4', 'lg:p-6']);
+    verifyRanges(content, tokenRanges, ['hover:bg-blue-500', 'focus:ring-2', 'sm:p-4', 'lg:p-6']);
   });
 
   it('should demonstrate template pattern functionality with known working patterns', async function () {
@@ -1038,16 +997,16 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content);
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
     // Log what we actually found for debugging
-    console.log('Found prefixes:', Array.from(prefixRanges.keys()));
+    console.log('Found prefixes:', Array.from(tokenRanges.keys()));
 
-    console.log('Template patterns are working! Found prefixes:', Array.from(prefixRanges.keys()));
+    console.log('Template patterns are working! Found prefixes:', Array.from(tokenRanges.keys()));
 
     // Verify we found at least some of the expected ones
     const expectedPrefixes = ['hover', 'sm', 'lg', 'md', 'focus'];
-    const foundPrefixes = Array.from(prefixRanges.keys());
+    const foundPrefixes = Array.from(tokenRanges.keys());
     const intersection = expectedPrefixes.filter((p) => foundPrefixes.includes(p));
 
     assert.ok(
@@ -1077,15 +1036,15 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content, 'css');
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('hover'));
-    assert.ok(prefixRanges.has('sm'));
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.ok(prefixRanges.has('focus'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('sm'));
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('focus'));
 
-    verifyRanges(content, prefixRanges, [
+    verifyRanges(content, tokenRanges, [
       'hover:bg-blue-600',
       'sm:grid-cols-1',
       'md:grid-cols-2',
@@ -1109,12 +1068,276 @@ suite('Tailwind Class Coloring Test Suite', () => {
     console.log('Testing:', content);
     await updateTestFile(content, 'scss');
 
-    const prefixRanges = getPrefixRanges();
+    const tokenRanges = getTokenRanges();
 
-    assert.ok(prefixRanges.has('md'));
-    assert.ok(prefixRanges.has('lg'));
-    assert.strictEqual(prefixRanges.size, 2);
+    assert.ok(tokenRanges.has('md'));
+    assert.ok(tokenRanges.has('lg'));
+    assert.strictEqual(tokenRanges.size, 2);
 
-    verifyRanges(content, prefixRanges, ['md:p-6', 'lg:p-8', 'md:text-base', 'lg:text-lg']);
+    verifyRanges(content, tokenRanges, ['md:p-6', 'lg:p-8', 'md:text-base', 'lg:text-lg']);
+  });
+
+  it('should NOT match base classes with arbitrary values against prefix wildcards', async function () {
+    const content = `
+      <div class="min-w-[100px] min-lg:bg-blue-500 hover:text-white"></div>
+    `;
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const tokenRanges = getTokenRanges();
+
+    assert.ok(tokenRanges.has('min-lg'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(!tokenRanges.has('min-w-[100px]')); // Should NOT match prefix wildcard
+    assert.strictEqual(tokenRanges.size, 2);
+
+    verifyRanges(content, tokenRanges, ['min-lg:bg-blue-500', 'hover:text-white']);
+  });
+
+  it('should handle standalone arbitrary classes correctly', async function () {
+    const config = vscode.workspace.getConfiguration('tailwindRainbow');
+    const originalThemes = config.get('themes', {});
+
+    const testThemes = {
+      ...originalThemes,
+      'test-arbitrary-standalone': {
+        prefix: {},
+        base: {},
+        arbitrary: {
+          color: '#ff00ff',
+          fontWeight: '700',
+        },
+      },
+    };
+
+    await config.update('themes', testThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'test-arbitrary-standalone', vscode.ConfigurationTarget.Global);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const content = `
+      <div class="[aspect-ratio:1/8] [&.show]:block regular-class"></div>
+    `;
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const tokenRanges = getTokenRanges();
+
+    assert.ok(tokenRanges.has('[aspect-ratio:1/8]'));
+    assert.ok(tokenRanges.has('[&.show]'));
+    assert.strictEqual(tokenRanges.size, 2);
+
+    verifyRanges(content, tokenRanges, ['[aspect-ratio:1/8]', '[&.show]:block']);
+
+    await config.update('themes', originalThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'default', vscode.ConfigurationTarget.Global);
+  });
+
+  it('should support multi-token coloring with both prefix and base class configs', async function () {
+    const config = vscode.workspace.getConfiguration('tailwindRainbow');
+    const originalThemes = config.get('themes', {});
+
+    const testThemes = {
+      ...originalThemes,
+      'test-multi-token': {
+        prefix: {
+          lg: {
+            color: '#ff0000',
+            fontWeight: '700',
+          },
+          hover: {
+            color: '#00ff00',
+            fontWeight: '700',
+          },
+        },
+        base: {
+          'min-*': {
+            color: '#0000ff',
+            fontWeight: '600',
+          },
+          'bg-*': {
+            color: '#ffff00',
+            fontWeight: '600',
+          },
+        },
+      },
+    };
+
+    await config.update('themes', testThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'test-multi-token', vscode.ConfigurationTarget.Global);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const content = `
+      <div class="lg:min-w-[1920px] hover:bg-red-500"></div>
+    `;
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const tokenRanges = getTokenRanges();
+
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('min-w-[1920px]'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('bg-red-500'));
+    assert.strictEqual(tokenRanges.size, 4);
+
+    verifyRanges(content, tokenRanges, ['lg:', 'min-w-[1920px]', 'hover:', 'bg-red-500']);
+
+    await config.update('themes', originalThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'default', vscode.ConfigurationTarget.Global);
+  });
+
+  it('should prioritize exact matches over wildcard patterns', async function () {
+    const config = vscode.workspace.getConfiguration('tailwindRainbow');
+    const originalThemes = config.get('themes', {});
+
+    const testThemes = {
+      ...originalThemes,
+      'test-priority': {
+        prefix: {
+          'min-lg': {
+            color: '#ff0000',
+            fontWeight: '700',
+          },
+          'min-*': {
+            color: '#00ff00',
+            fontWeight: '700',
+          },
+        },
+        base: {
+          'bg-red-500': {
+            color: '#0000ff',
+            fontWeight: '600',
+          },
+          'bg-*': {
+            color: '#ffff00',
+            fontWeight: '600',
+          },
+        },
+      },
+    };
+
+    await config.update('themes', testThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'test-priority', vscode.ConfigurationTarget.Global);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const content = `
+      <div class="min-lg:bg-red-500 min-xl:bg-blue-500"></div>
+    `;
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const tokenRanges = getTokenRanges();
+
+    assert.ok(tokenRanges.has('min-lg'));
+    assert.ok(tokenRanges.has('min-xl'));
+    assert.ok(tokenRanges.has('bg-red-500'));
+    assert.ok(tokenRanges.has('bg-blue-500'));
+    assert.strictEqual(tokenRanges.size, 4);
+
+    verifyRanges(content, tokenRanges, ['min-lg:', 'bg-red-500', 'min-xl:', 'bg-blue-500']);
+
+    await config.update('themes', originalThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'default', vscode.ConfigurationTarget.Global);
+  });
+
+  it('should handle base classes with arbitrary values using base section wildcards', async function () {
+    const config = vscode.workspace.getConfiguration('tailwindRainbow');
+    const originalThemes = config.get('themes', {});
+
+    const testThemes = {
+      ...originalThemes,
+      'test-base-arbitrary': {
+        prefix: {},
+        base: {
+          'min-*': {
+            color: '#ff0000',
+            fontWeight: '600',
+          },
+          'max-*': {
+            color: '#00ff00',
+            fontWeight: '600',
+          },
+        },
+        arbitrary: {
+          color: '#0000ff',
+          fontWeight: '700',
+        },
+      },
+    };
+
+    await config.update('themes', testThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'test-base-arbitrary', vscode.ConfigurationTarget.Global);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const content = `
+      <div class="min-w-[100px] max-h-[500px] w-[200px]"></div>
+    `;
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const tokenRanges = getTokenRanges();
+
+    assert.ok(tokenRanges.has('min-w-[100px]'));
+    assert.ok(tokenRanges.has('max-h-[500px]'));
+    assert.strictEqual(tokenRanges.size, 2);
+
+    verifyRanges(content, tokenRanges, ['min-w-[100px]', 'max-h-[500px]']);
+
+    await config.update('themes', originalThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'default', vscode.ConfigurationTarget.Global);
+  });
+
+  it('should handle complex multi-prefix with base class wildcards', async function () {
+    const config = vscode.workspace.getConfiguration('tailwindRainbow');
+    const originalThemes = config.get('themes', {});
+
+    const testThemes = {
+      ...originalThemes,
+      'test-complex-multi': {
+        prefix: {
+          lg: {
+            color: '#ff0000',
+            fontWeight: '700',
+          },
+          checked: {
+            color: '#00ff00',
+            fontWeight: '700',
+          },
+          hover: {
+            color: '#0000ff',
+            fontWeight: '700',
+          },
+        },
+        base: {
+          'bg-*': {
+            color: '#ffff00',
+            fontWeight: '600',
+          },
+        },
+      },
+    };
+
+    await config.update('themes', testThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'test-complex-multi', vscode.ConfigurationTarget.Global);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const content = `
+      <div class="lg:checked:hover:bg-blue-500"></div>
+    `;
+    console.log('Testing:', content);
+    await updateTestFile(content);
+
+    const tokenRanges = getTokenRanges();
+
+    assert.ok(tokenRanges.has('lg'));
+    assert.ok(tokenRanges.has('checked'));
+    assert.ok(tokenRanges.has('hover'));
+    assert.ok(tokenRanges.has('bg-blue-500'));
+    assert.strictEqual(tokenRanges.size, 4);
+
+    verifyRanges(content, tokenRanges, ['lg:', 'checked:', 'hover:', 'bg-blue-500']);
+
+    await config.update('themes', originalThemes, vscode.ConfigurationTarget.Global);
+    await config.update('theme', 'default', vscode.ConfigurationTarget.Global);
   });
 });

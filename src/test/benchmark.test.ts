@@ -23,18 +23,18 @@ suite('Benchmark Test Suite', function () {
   let editor: vscode.TextEditor;
   let measurements: BenchmarkMeasurement[] = [];
 
-  // Helper function to measure api.getPrefixRanges performance
-  function measurePrefixRanges(testEditor: vscode.TextEditor): Map<string, vscode.Range[]> {
+  // Helper function to measure api.getTokenRanges performance
+  function measureTokenRanges(testEditor: vscode.TextEditor): Map<string, vscode.Range[]> {
     const startTime = performance.now();
     const timestamp = Date.now();
     const documentSize = testEditor.document.getText().length;
     const languageId = testEditor.document.languageId;
 
-    const result = api.getPrefixRanges(testEditor);
+    const result = api.getTokenRanges(testEditor);
 
     const duration = performance.now() - startTime;
     measurements.push({
-      operation: 'getPrefixRanges',
+      operation: 'getTokenRanges',
       duration,
       timestamp,
       documentSize,
@@ -124,8 +124,8 @@ suite('Benchmark Test Suite', function () {
     console.log(`Running ${iterations} iterations for benchmark measurement...`);
 
     for (let i = 0; i < iterations; i++) {
-      const prefixRanges = measurePrefixRanges(editor);
-      assert.ok(prefixRanges.size > 0, 'Should find prefix ranges');
+      const tokenRanges = measureTokenRanges(editor);
+      assert.ok(tokenRanges.size > 0, 'Should find prefix ranges');
 
       if ((i + 1) % 20 === 0) {
         console.log(`  Completed ${i + 1}/${iterations} iterations`);
@@ -150,8 +150,8 @@ suite('Benchmark Test Suite', function () {
       console.log(`  Testing with ${multiplier}x content (${repeatedContent.length} chars)`);
 
       for (let i = 0; i < 10; i++) {
-        const prefixRanges = measurePrefixRanges(editor);
-        assert.ok(prefixRanges.size > 0, 'Should find prefix ranges');
+        const tokenRanges = measureTokenRanges(editor);
+        assert.ok(tokenRanges.size > 0, 'Should find prefix ranges');
       }
     }
 
@@ -220,7 +220,7 @@ const Component: React.FC<Props> = ({ className }) => (
       const langEditor = await vscode.window.showTextDocument(langDoc);
 
       for (let i = 0; i < 20; i++) {
-        measurePrefixRanges(langEditor);
+        measureTokenRanges(langEditor);
       }
 
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');

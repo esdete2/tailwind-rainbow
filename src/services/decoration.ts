@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
 
-import { getThemeConfigForPrefix } from './utils';
-
 /**
- * Manages VS Code text decorations for Tailwind prefixes
+ * Manages VS Code text decorations for Tailwind tokens (prefixes and base classes)
  * Handles creation, updating, and cleanup of decorations
  */
 export class DecorationService {
@@ -19,31 +17,33 @@ export class DecorationService {
   }
 
   /**
-   * Gets or creates a decoration type for a prefix
-   * @param prefix The Tailwind prefix to create decoration for
-   * @param config The styling configuration for the prefix
-   * @returns TextEditorDecorationType for the prefix
+   * Gets or creates a decoration type for a token
+   * @param token The Tailwind token (prefix or base class) to create decoration for
+   * @param config The styling configuration for the token
+   * @returns TextEditorDecorationType for the token
    */
-  getDecorationForPrefix(prefix: string, config: ClassConfig): vscode.TextEditorDecorationType {
-    if (!this.decorationTypes.has(prefix)) {
+  getDecorationForToken(token: string, config: ClassConfig): vscode.TextEditorDecorationType {
+    if (!this.decorationTypes.has(token)) {
       this.decorationTypes.set(
-        prefix,
+        token,
         vscode.window.createTextEditorDecorationType({
           color: config.color,
           fontWeight: config.fontWeight,
         })
       );
     }
-    return this.decorationTypes.get(prefix)!;
+    return this.decorationTypes.get(token)!;
   }
 
   /**
-   * Updates decorations in the editor based on found prefix ranges
+   * Updates decorations in the editor based on found token ranges
    * @param editor The VS Code text editor to update
-   * @param prefixRanges Map of prefix to their ranges in the document
-   * @param activeTheme Current theme configuration for prefix styling
+   * @param tokenRangeMap Map of token to their ranges and configs in the document
    */
-  updateDecorations(editor: vscode.TextEditor, prefixRanges: Map<string, vscode.Range[]>, activeTheme: Theme) {
+  updateDecorations(
+    editor: vscode.TextEditor,
+    tokenRangeMap: Map<string, { ranges: vscode.Range[]; config: ClassConfig }>
+  ) {
     if (!editor) {
       return;
     }
@@ -51,12 +51,12 @@ export class DecorationService {
     // Clear existing decorations
     this.decorationTypes.forEach((type) => editor.setDecorations(type, []));
 
-    // Apply new decorations
-    prefixRanges.forEach((ranges, prefix) => {
-      const config = getThemeConfigForPrefix(activeTheme, prefix);
-      // console.log('[updateDecorations] prefix:', prefix, 'config:', config, 'ranges:', ranges); // Keep for debugging
+    // Apply new decorations using the config from the tokenizer
+    tokenRangeMap.forEach((rangeData, token) => {
+      const { ranges, config } = rangeData;
+      // console.log('[updateDecorations] token:', token, 'config:', config, 'ranges:', ranges); // Keep for debugging
       if (config && config.enabled !== false) {
-        const decorationType = this.getDecorationForPrefix(prefix, config);
+        const decorationType = this.getDecorationForToken(token, config);
         editor.setDecorations(decorationType, ranges);
       }
     });

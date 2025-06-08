@@ -20,12 +20,18 @@ export class ExtensionService {
   private isProcessing = false; // Prevent concurrent processing
 
   /**
-   * Gets the prefix ranges for a given editor
+   * Gets the token ranges for a given editor
    * @param editor The VS Code text editor
-   * @returns Map of prefixes to their ranges
+   * @returns Map of tokens to their ranges
    */
-  public getPrefixRanges(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
-    return this.tokenizerService.findClassRanges(editor, this.activeTheme);
+  public getTokenRanges(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
+    const rangeMap = this.tokenizerService.findClassRanges(editor, this.activeTheme);
+    // Convert back to old format for backward compatibility
+    const result = new Map<string, vscode.Range[]>();
+    for (const [key, value] of rangeMap) {
+      result.set(key, value.ranges);
+    }
+    return result;
   }
 
   /**
@@ -93,8 +99,8 @@ export class ExtensionService {
           return;
         }
 
-        const prefixRanges = this.tokenizerService.findClassRanges(editor, this.activeTheme);
-        this.decorationService.updateDecorations(editor, prefixRanges, this.activeTheme);
+        const tokenRangeMap = this.tokenizerService.findClassRanges(editor, this.activeTheme);
+        this.decorationService.updateDecorations(editor, tokenRangeMap);
       } catch (error) {
         this.outputService.error(error instanceof Error ? error : String(error));
       } finally {

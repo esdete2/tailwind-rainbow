@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { ConfigurationManager } from './config';
-import { getThemeConfigForPrefix } from './utils';
+import { getThemeConfigForBaseClass, getThemeConfigForPrefix } from './utils';
 
 // =============================================================================
 // CONSTANTS
@@ -498,20 +498,34 @@ export class TokenizerService {
     } else {
       // Regular prefix or wildcard prefix
       prefixConfig = getThemeConfigForPrefix(activeTheme, prefix);
-
-      // Try wildcard pattern for bracket prefixes
-      if (!prefixConfig && prefix.includes('[') && prefix.includes(']')) {
-        // Extract the base prefix
-        const basePrefix = prefix.split('-')[0];
-        const wildcardKey = `${basePrefix}-*`;
-        prefixConfig = getThemeConfigForPrefix(activeTheme, wildcardKey);
-        if (prefixConfig) {
-          themeKey = wildcardKey;
-        }
-      }
     }
 
     return { config: prefixConfig, themeKey };
+  }
+
+  /**
+   * Gets the appropriate configuration for a base class
+   * @param activeTheme Current theme configuration
+   * @param prefix The base class to get config for
+   * @returns Object containing config and theme key
+   */
+  private getBaseClassConfig(activeTheme: Theme, baseClass: string): { config: ClassConfig | null; themeKey: string } {
+    let baseClassConfig: ClassConfig | null = null;
+    let themeKey = baseClass;
+
+    // Check if this is an arbitrary base class
+    if (baseClass.startsWith('[') && baseClass.endsWith(']')) {
+      const arbitraryConfig = getThemeConfigForBaseClass(activeTheme, 'arbitrary');
+      if (arbitraryConfig && arbitraryConfig.enabled !== false) {
+        baseClassConfig = arbitraryConfig;
+        themeKey = 'arbitrary';
+      }
+    } else {
+      // Regular or wildcard base class
+      baseClassConfig = getThemeConfigForBaseClass(activeTheme, baseClass);
+    }
+
+    return { config: baseClassConfig, themeKey };
   }
 
   /**
@@ -592,140 +606,82 @@ export class TokenizerService {
     // Split by colons to get prefixes and main class
     const parts = this.splitClassByColons(remainingClass);
 
-    const fullClass = classPart.slice(currentPos);
+    if (parts.length === 1) {
+      // For standalone classes, check base section only
+      const baseClassResult = this.getBaseClassConfig(activeTheme, remainingClass);
+      const baseClassConfig = baseClassResult.config;
+      const baseClassThemeKey = baseClassResult.themeKey;
 
-    if (parts.length === PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP) {
-      // No prefixes
-      const className = parts[0];
-      let themeKey: string;
-      let rangeKey: string;
-
-      if (className.includes('[') && className.includes(']')) {
-        themeKey = 'arbitrary';
-        rangeKey = className;
-      } else {
-        themeKey = className;
-        rangeKey = className;
-      }
-
-      // For standalone classes, check base and arbitrary sections
-      let config: ClassConfig | null = null;
-
-      if (className.includes('[') && className.includes(']')) {
-        config = activeTheme.arbitrary || null;
-        themeKey = 'arbitrary';
-      } else {
-        // Regular class - check for exact match first
-        config = activeTheme.base?.[className] || null;
-
-        // Check for base wildcard patterns
-        if (!config && activeTheme.base) {
-          for (const [pattern, patternConfig] of Object.entries(activeTheme.base)) {
-            if (pattern.endsWith('-*')) {
-              const basePattern = pattern.slice(0, -PERFORMANCE_CONSTANTS.COMMENT_SKIP_LENGTH);
-              if (className.startsWith(basePattern + '-')) {
-                config = patternConfig;
-                break;
-              }
-            }
-          }
-        }
-      }
-
-      if (config && config.enabled !== false) {
+      if (baseClassConfig && baseClassConfig.enabled !== false) {
         tokens.push({
           type: 'class',
-          content: fullClass,
+          content: remainingClass,
           start: startOffset + currentPos,
           end: startOffset + classPart.length,
-          themeKey: themeKey,
-          rangeKey: rangeKey,
-          config: config,
+          themeKey: baseClassThemeKey,
+          rangeKey: remainingClass,
+          config: baseClassConfig,
         });
       }
     } else {
       // Has prefixes
-      const prefixes = parts.slice(0, -PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP);
-      const baseClass = parts[parts.length - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP];
+      const prefixes = parts.slice(0, -1);
+      const baseClass = parts[parts.length - 1];
 
-      // Determine if this is a true multi-prefix case or a single prefix with arbitrary value
-      // Multi-prefix: dark:sm:hover:text-blue-500 (multiple semantic prefixes)
-      // Single prefix + arbitrary: before:content-['test'] (one prefix + base class with arbitrary value)
+      let currentPrefixStart = currentPos;
 
-      const hasArbitraryValue = baseClass.includes('[') && baseClass.includes(']');
-      const isMultiPrefix = prefixes.length > PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP && !hasArbitraryValue;
+      const baseClassResult = this.getBaseClassConfig(activeTheme, baseClass);
+      const baseClassConfig = baseClassResult.config;
+      const baseClassThemeKey = baseClassResult.themeKey;
 
-      if (isMultiPrefix) {
-        // Multi-prefix case: color each prefix individually
-        let currentPrefixStart = currentPos;
+      for (let i = 0; i < prefixes.length; i++) {
+        const prefix = prefixes[i];
+        const prefixResult = this.getPrefixConfig(activeTheme, prefix);
+        const prefixConfig = prefixResult.config;
+        const prefixThemeKey = prefixResult.themeKey;
 
-        for (let i = 0; i < prefixes.length; i++) {
-          const prefix = prefixes[i];
-          const prefixResult = this.getPrefixConfig(activeTheme, prefix);
-          const prefixConfig = prefixResult.config;
-          const actualThemeKey = prefixResult.themeKey;
+        if (prefixConfig && prefixConfig.enabled !== false) {
+          let prefixEnd: number;
 
-          if (prefixConfig && prefixConfig.enabled !== false) {
-            // For multi-prefix case, include the colon after each prefix
-            // For the last prefix, include the base class as well
-            let prefixEnd: number;
-            if (i === prefixes.length - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP) {
-              // Last prefix: include the base class
-              prefixEnd = currentPos + classPart.length;
-            } else {
-              // Intermediate prefix: include just the prefix and colon
-              prefixEnd = currentPrefixStart + prefix.length + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
-            }
-
-            tokens.push({
-              type: 'class',
-              content: fullClass,
-              start: startOffset + currentPrefixStart,
-              end: startOffset + prefixEnd,
-              themeKey: actualThemeKey,
-              rangeKey: prefix,
-              config: prefixConfig,
-            });
+          if (i < prefixes.length - 1 || (baseClassConfig && baseClassConfig.enabled !== false)) {
+            // Intermediate prefix: include just the prefix and colon
+            prefixEnd = currentPrefixStart + prefix.length + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
+          } else {
+            // Last prefix and no base class config: include the base class
+            prefixEnd = currentPos + classPart.length;
           }
 
-          // Move to next prefix position (add 1 for the colon)
-          currentPrefixStart += prefix.length + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
-        }
-      } else {
-        // Single prefix case: color the entire class with the prefix color
-        for (const prefix of prefixes) {
-          const prefixResult = this.getPrefixConfig(activeTheme, prefix);
-          const prefixConfig = prefixResult.config;
-          const actualThemeKey = prefixResult.themeKey;
-
-          if (prefixConfig && prefixConfig.enabled !== false) {
-            tokens.push({
-              type: 'class',
-              content: fullClass,
-              start: startOffset + currentPos,
-              end: startOffset + classPart.length,
-              themeKey: actualThemeKey,
-              rangeKey: prefix,
-              config: prefixConfig,
-            });
-          }
-        }
-      }
-
-      // Try base class if no valid prefixes found
-      if (tokens.length === 0) {
-        const baseConfig = getThemeConfigForPrefix(activeTheme, baseClass);
-        if (baseConfig && baseConfig.enabled !== false) {
           tokens.push({
             type: 'class',
-            content: fullClass,
-            start: startOffset + currentPos,
-            end: startOffset + classPart.length,
-            themeKey: baseClass,
-            rangeKey: baseClass,
-            config: baseConfig,
+            content: remainingClass,
+            start: startOffset + currentPrefixStart,
+            end: startOffset + prefixEnd,
+            themeKey: prefixThemeKey,
+            rangeKey: prefix,
+            config: prefixConfig,
           });
         }
+
+        // Move to next prefix position (add 1 for the colon)
+        currentPrefixStart += prefix.length + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
+      }
+
+      if (baseClassConfig && baseClassConfig.enabled !== false) {
+        // Find where the base class starts in the full class
+        let baseClassStart = currentPos;
+        for (const prefix of prefixes) {
+          baseClassStart += prefix.length + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP; // +1 for colon
+        }
+
+        tokens.push({
+          type: 'class',
+          content: remainingClass,
+          start: startOffset + baseClassStart,
+          end: startOffset + classPart.length,
+          themeKey: baseClassThemeKey,
+          rangeKey: baseClass,
+          config: baseClassConfig,
+        });
       }
     }
 
@@ -778,9 +734,12 @@ export class TokenizerService {
    * Main method to find all class tokens in a document
    * @param editor VS Code text editor
    * @param activeTheme Current theme configuration
-   * @returns Map of theme keys to their ranges
+   * @returns Map of theme keys to their ranges and configs
    */
-  findClassRanges(editor: vscode.TextEditor, activeTheme: Theme): Map<string, vscode.Range[]> {
+  findClassRanges(
+    editor: vscode.TextEditor,
+    activeTheme: Theme
+  ): Map<string, { ranges: vscode.Range[]; config: ClassConfig }> {
     const text = editor.document.getText();
 
     // Early termination for very large files
@@ -821,29 +780,28 @@ export class TokenizerService {
       }
     }
 
-    // Sort tokens by start position
-    allClassTokens.sort((a, b) => a.start - b.start);
-
-    // Group tokens by range key and convert to VS Code ranges
-    const rangeMap = new Map<string, vscode.Range[]>();
+    // Group tokens by range key and convert to VS Code ranges with config
+    const rangeMap = new Map<string, { ranges: vscode.Range[]; config: ClassConfig }>();
 
     for (const classToken of allClassTokens) {
       if (classToken.rangeKey && classToken.config) {
         const mapKey = classToken.rangeKey;
         if (!rangeMap.has(mapKey)) {
-          rangeMap.set(mapKey, []);
+          rangeMap.set(mapKey, { ranges: [], config: classToken.config });
         }
 
         const startPos = editor.document.positionAt(classToken.start);
         const endPos = editor.document.positionAt(classToken.end);
         const newRange = new vscode.Range(startPos, endPos);
 
-        const existingRanges = rangeMap.get(mapKey)!;
+        const existingEntry = rangeMap.get(mapKey)!;
 
-        const hasOverlap = existingRanges.some((existingRange) => newRange.intersection(existingRange) !== undefined);
+        const hasOverlap = existingEntry.ranges.some(
+          (existingRange) => newRange.intersection(existingRange) !== undefined
+        );
 
         if (!hasOverlap) {
-          existingRanges.push(newRange);
+          existingEntry.ranges.push(newRange);
         }
       }
     }
