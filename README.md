@@ -9,10 +9,93 @@ A VS Code extension that provides syntax highlighting for Tailwind CSS classes w
 ## Features
 
 - 🟣 **Prefix-based coloring**: Colors Tailwind prefixes (hover, focus, sm, lg, etc.) individually
-- 🔵 **Arbitrary values**: Highlights arbitrary prefix values ([&.show])
+- 🔵 **Arbitrary values**: Highlights arbitrary prefix values and standalone arbitrary classes
 - 🟠 **Optional base class support**: Highlights base classes with wildcard patterns (bg-*, text-*, etc.)
 - 🟡 **Smart detection**: Works in HTML, JSX, template literals, CSS @apply directives, and more
 - 🟢 **Fully configurable**: Customize patterns, functions, and detection logic
+
+### Class Structure Analysis
+
+The extension recognizes two main types of Tailwind constructs:
+
+1. **Prefixes** - Modifiers that end with a colon (`:`)
+   - Examples: `hover:`, `sm:`, `dark:`, `group-hover:`
+   - Checked against the `prefix` section of the theme
+
+2. **Base Classes** - Standalone utility classes without colons
+   - Examples: `bg-blue-500`, `text-lg`, `min-w-[100px]`
+   - Checked against the `base` section of the theme
+
+### Coloring Logic Examples
+
+These are only examples. The default themes **do not** contain any entries in the base section.
+
+#### Single Classes
+```
+/* Base class - uses base section */
+bg-blue-500          → matches "bg-*" pattern in base section
+
+/* Arbitrary class - uses arbitrary color */
+[aspect-ratio:1/8]   → uses arbitrary color
+
+/* Prefixed class - prefix color applies to entire class */
+hover:bg-red-500     → "hover" color from prefix section
+```
+
+#### Multi-Prefix Classes
+```
+/* Each prefix gets its own color, last prefix colors the rest */
+lg:checked:hover:bg-blue-500
+├─ lg:               → "lg" color from prefix section
+├─ checked:          → "checked" color from prefix section
+└─ hover:bg-blue-500 → "hover" color from prefix section
+```
+
+#### Advanced Multi-Token Coloring
+```
+/* When both prefix and base class have theme entries */
+lg:min-w-[1920px]
+├─ lg:               → "lg" color (from prefix section)
+└─ min-w-[1920px]    → "min-*" color (from base section)
+```
+
+### Wildcard Pattern Matching
+
+The extension supports wildcard patterns using the `*` character:
+
+#### Prefix Wildcards
+- `min-*` in prefix section matches: `min-lg:`, `min-xl:`, `min-[480px]:`
+- Exact matches take priority: `min-lg` config overrides `min-*` config
+
+#### Base Class Wildcards
+- `bg-*` in base section matches: `bg-red-500`, `bg-[#ff0000]`, `bg-gradient-to-r`
+- `min-*` in base section matches: `min-w-full`, `min-h-[100px]`
+
+### Arbitrary Value Handling
+
+```
+/* Standalone arbitrary classes */
+[aspect-ratio:1/8]     → arbitrary color
+
+/* Arbitrary prefixes */
+[&.show]:display-block → arbitrary color
+```
+
+### Configuration Priority
+
+The extension follows a specific lookup order for maximum flexibility:
+
+**For Prefixes:**
+1. Exact match in prefix section
+2. Match without ignored modifiers (e.g., `group-hover` → `hover`)
+3. Match without group name (e.g., `hover/opacity-50` → `hover`)
+4. Wildcard pattern match in prefix section
+5. Arbitrary color (for bracket-enclosed prefixes)
+
+**For Base Classes:**
+1. Exact match in base section
+2. Wildcard pattern match in base section
+3. Arbitrary color (for bracket-enclosed classes)
 
 ## Supported File Types
 
