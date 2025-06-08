@@ -1,15 +1,30 @@
 {
   "name": "tailwind-rainbow",
   "displayName": "Tailwind Rainbow",
-  "description": "",
+  "description": "Syntax highlighting for Tailwind CSS classes with customizable prefix-based coloring themes",
   "version": "0.1.1",
   "publisher": "esdete",
+  "keywords": [
+    "tailwind",
+    "css",
+    "highlight",
+    "syntax",
+    "coloring",
+    "theme",
+    "prefix",
+    "rainbow"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/esdete2/tailwind-rainbow"
   },
+  "homepage": "https://github.com/esdete2/tailwind-rainbow",
+  "bugs": {
+    "url": "https://github.com/esdete2/tailwind-rainbow/issues"
+  },
   "categories": [
     "Other",
+    "Formatters",
     "Themes"
   ],
   "icon": "images/icon.png",
@@ -69,10 +84,20 @@
     "configuration": {
       "title": "Tailwind Rainbow",
       "properties": {
+        "tailwindRainbow.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable Tailwind Rainbow extension"
+        },
         "tailwindRainbow.debug": {
           "type": "boolean",
           "default": false,
           "description": "Enable debug logging"
+        },
+        "tailwindRainbow.maxFileSize": {
+          "type": "number",
+          "default": 1000000,
+          "description": "Maximum file size in bytes to process (default: 1MB). Files larger than this will be skipped to prevent performance issues."
         },
         "tailwindRainbow.theme": {
           "type": "string",
@@ -83,73 +108,67 @@
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "color": {
-                  "type": "string",
-                  "description": "Color for the prefix (hex format)"
+            "properties": {
+              "prefix": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#[0-9A-Fa-f]{6}$",
+                      "description": "Color for the prefix (hex format, e.g., #ff0000)"
+                    },
+                    "fontWeight": {
+                      "type": "string",
+                      "enum": [
+                        "normal",
+                        "bold",
+                        "lighter",
+                        "bolder",
+                        "thin",
+                        "extralight",
+                        "light",
+                        "medium",
+                        "semibold",
+                        "extrabold",
+                        "black",
+                        "100",
+                        "200",
+                        "300",
+                        "400",
+                        "500",
+                        "600",
+                        "700",
+                        "800",
+                        "900"
+                      ],
+                      "description": "Font weight for the prefix"
+                    }
+                  }
                 },
-                "enabled": {
-                  "type": "boolean",
-                  "description": "Enable/disable this prefix"
+                "description": "Prefix-specific configurations"
+              },
+              "base": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/properties/tailwindRainbow.themes/additionalProperties/properties/prefix/additionalProperties"
                 },
-                "fontWeight": {
-                  "type": "string",
-                  "enum": [
-                    "normal",
-                    "bold",
-                    "lighter",
-                    "bolder",
-                    "thin",
-                    "extralight",
-                    "light",
-                    "medium",
-                    "semibold",
-                    "extrabold",
-                    "black",
-                    "100",
-                    "200",
-                    "300",
-                    "400",
-                    "500",
-                    "600",
-                    "700",
-                    "800",
-                    "900"
-                  ],
-                  "description": "Font weight for the prefix"
-                }
+                "description": "Base class configurations (e.g., bg-*, text-*)"
+              },
+              "arbitrary": {
+                "$ref": "#/properties/tailwindRainbow.themes/additionalProperties/properties/prefix/additionalProperties",
+                "description": "Configuration for arbitrary value classes"
+              },
+              "important": {
+                "$ref": "#/properties/tailwindRainbow.themes/additionalProperties/properties/prefix/additionalProperties",
+                "description": "Configuration for important modifier (!)"
               }
             },
-            "description": "Theme configuration"
+            "description": "Theme configuration with prefix, base, arbitrary, and important sections"
           },
           "default": {},
-          "description": "Custom themes or overrides for existing themes"
-        },
-        "tailwindRainbow.patterns": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object",
-            "properties": {
-              "regex": {
-                "type": "string",
-                "description": "Regular expression to match class names"
-              },
-              "enabled": {
-                "type": "boolean",
-                "default": true,
-                "description": "Enable/disable this pattern"
-              }
-            }
-          },
-          "default": {
-            "default": {
-              "regex": "(?<=(['`\"]))((?:[^'`\"\\\\]|\\\\.)*?:[^'`\"]*(?:\\[[^\\]]*\\][^'`\"]*)*?)(?<!\\\\)(?=\\1)",
-              "enabled": true
-            }
-          },
-          "description": "Custom regex patterns to match class names"
+          "markdownDescription": "Custom themes or overrides for existing themes. Example:\n```json\n{\n  \"myTheme\": {\n    \"prefix\": {\n      \"hover\": { \"color\": \"#ff0000\", \"enabled\": true }\n    },\n    \"base\": {\n      \"bg-*\": { \"color\": \"#00ff00\", \"enabled\": true }\n    }\n  }\n}\n```"
         },
         "tailwindRainbow.languages": {
           "type": "array",
@@ -165,9 +184,100 @@
             "vue",
             "svelte",
             "astro",
-            "php"
+            "php",
+            "css",
+            "scss",
+            "sass",
+            "less",
+            "stylus",
+            "postcss"
           ],
           "description": "Language identifiers the extension should be active for"
+        },
+        "tailwindRainbow.ignoredPrefixModifiers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "group",
+            "peer",
+            "has",
+            "in",
+            "not"
+          ],
+          "description": "Prefix modifiers that should be ignored"
+        },
+        "tailwindRainbow.classIdentifiers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "class",
+            "className",
+            "class:",
+            "className:",
+            "classlist",
+            "classes",
+            "css",
+            "style"
+          ],
+          "description": "HTML/JSX attributes and variable patterns that indicate class content. Supports exact strings and regex patterns (prefix with 'regex:')."
+        },
+        "tailwindRainbow.classFunctions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "cn",
+            "clsx",
+            "cva",
+            "classNames",
+            "classList",
+            "classnames",
+            "twMerge",
+            "tw",
+            "cls",
+            "cc",
+            "cx",
+            "classname",
+            "styled",
+            "css",
+            "theme",
+            "variants"
+          ],
+          "description": "Function names that typically contain class strings as arguments."
+        },
+        "tailwindRainbow.templatePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "class",
+            "${",
+            "tw`",
+            "css`",
+            "styled"
+          ],
+          "description": "Patterns to detect in template literals that indicate class content."
+        },
+        "tailwindRainbow.contextPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "variants",
+            "cva",
+            "class",
+            "css",
+            "style",
+            "@apply"
+          ],
+          "description": "Keywords to look for in extended context to identify class-related code."
         }
       }
     }

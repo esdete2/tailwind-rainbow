@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+import { ConfigurationManager } from './config';
+
 /**
  * Singleton service for centralized logging
  * Provides consistent output channel management across the extension
@@ -7,7 +9,7 @@ import * as vscode from 'vscode';
 export class OutputService {
   private static instance: OutputService;
   private channel: vscode.OutputChannel;
-  private debugEnabled: boolean;
+  private configManager: ConfigurationManager;
 
   /**
    * Private constructor to enforce singleton pattern
@@ -15,7 +17,7 @@ export class OutputService {
    */
   private constructor() {
     this.channel = vscode.window.createOutputChannel('Tailwind Rainbow');
-    this.debugEnabled = vscode.workspace.getConfiguration('tailwindRainbow').get('debug') ?? false;
+    this.configManager = ConfigurationManager.getInstance();
   }
 
   /**
@@ -43,7 +45,7 @@ export class OutputService {
    * @param message The message to log
    */
   debug(message: string) {
-    if (this.debugEnabled) {
+    if (this.configManager.getDebugEnabled()) {
       const timestamp = new Date().toISOString();
       this.channel.appendLine(`[${timestamp}] [DEBUG] ${message}`);
     }

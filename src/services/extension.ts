@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 
 import { DecorationService } from './decoration';
 import { OutputService } from './output';
-import { PatternService } from './pattern';
 import { ThemeService } from './theme';
+import { TokenizerService } from './tokenizer';
 
 /**
  * Main service that coordinates all extension functionality
@@ -11,22 +11,27 @@ import { ThemeService } from './theme';
  */
 export class ExtensionService {
   private decorationService: DecorationService;
-  private patternService: PatternService;
+  private tokenizerService: TokenizerService;
   private themeService: ThemeService;
-  private activeTheme: Record<string, PrefixConfig>;
+  private activeTheme: Theme;
   private outputService = OutputService.getInstance();
   private updateTimeout: NodeJS.Timeout | undefined;
-  private updateDelay = 100;
+  private typingDelay = 300; // Delay for typing to avoid excessive updates
+  private isProcessing = false; // Prevent concurrent processing
 
   /**
-   * Gets the prefix ranges for a given editor
+   * Gets the token ranges for a given editor
    * @param editor The VS Code text editor
-   * @returns Map of prefixes to their ranges
+   * @returns Map of tokens to their ranges
    */
-  public getPrefixRanges(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
-    const config = vscode.workspace.getConfiguration('tailwindRainbow');
-    const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
-    return this.patternService.findPrefixRanges(editor, patterns, this.activeTheme);
+  public getTokenRanges(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
+    const rangeMap = this.tokenizerService.findClassRanges(editor, this.activeTheme);
+    // Convert back to old format for backward compatibility
+    const result = new Map<string, vscode.Range[]>();
+    for (const [key, value] of rangeMap) {
+      result.set(key, value.ranges);
+    }
+    return result;
   }
 
   /**
@@ -34,7 +39,7 @@ export class ExtensionService {
    */
   constructor() {
     this.decorationService = new DecorationService();
-    this.patternService = new PatternService();
+    this.tokenizerService = new TokenizerService();
     this.themeService = new ThemeService();
     this.activeTheme = this.themeService.getActiveTheme();
     this.outputService.debug('Tailwind Rainbow is now active');
@@ -55,8 +60,9 @@ export class ExtensionService {
    * Updates decorations for the current editor
    * Handles file extension filtering and pattern matching
    * @param editor The VS Code text editor to update
+   * @param immediate Whether to bypass debouncing (default: false)
    */
-  private updateDecorations(editor: vscode.TextEditor) {
+  private updateDecorations(editor: vscode.TextEditor, immediate: boolean = false) {
     if (
       !editor ||
       editor.document.uri.scheme === 'output' ||
@@ -71,29 +77,36 @@ export class ExtensionService {
       clearTimeout(this.updateTimeout);
     }
 
-    // Debounce update
-    this.updateTimeout = setTimeout(() => {
-      const config = vscode.workspace.getConfiguration('tailwindRainbow');
-      const supportedLanguages = config.get<string[]>('languages') ?? [];
-      const languageId = editor.document.languageId;
-
-      if (!supportedLanguages.includes(languageId)) {
-        this.outputService.log(
-          `Language '${languageId}' not supported. Add to 'tailwindRainbow.languages' setting to enable.`
-        );
-        this.decorationService.clearDecorations();
-        return;
+    // Debounce update with concurrency protection
+    const delay = immediate ? 0 : this.typingDelay;
+    this.updateTimeout = setTimeout(async () => {
+      if (this.isProcessing) {
+        return; // Skip if already processing
       }
 
-      const patterns = config.get<Record<string, RegexPattern>>('patterns', {});
+      this.isProcessing = true;
 
       try {
-        const prefixRanges = this.patternService.findPrefixRanges(editor, patterns, this.activeTheme);
-        this.decorationService.updateDecorations(editor, prefixRanges, this.activeTheme);
+        const config = vscode.workspace.getConfiguration('tailwindRainbow');
+        const supportedLanguages = config.get<string[]>('languages') ?? [];
+        const languageId = editor.document.languageId;
+
+        if (!supportedLanguages.includes(languageId)) {
+          this.outputService.log(
+            `Language '${languageId}' not supported. Add to 'tailwindRainbow.languages' setting to enable.`
+          );
+          this.decorationService.clearDecorations();
+          return;
+        }
+
+        const tokenRangeMap = this.tokenizerService.findClassRanges(editor, this.activeTheme);
+        this.decorationService.updateDecorations(editor, tokenRangeMap);
       } catch (error) {
         this.outputService.error(error instanceof Error ? error : String(error));
+      } finally {
+        this.isProcessing = false;
       }
-    }, this.updateDelay);
+    }, delay);
   }
 
   /**
@@ -110,7 +123,7 @@ export class ExtensionService {
           await this.themeService.selectTheme(editor, () => {
             this.decorationService.clearDecorations();
             this.activeTheme = this.themeService.getCurrentTheme();
-            this.updateDecorations(editor);
+            this.updateDecorations(editor, true); // Immediate for theme changes
           });
         }
       })
@@ -123,9 +136,10 @@ export class ExtensionService {
           this.decorationService.clearDecorations();
           this.themeService.updateActiveTheme();
           this.activeTheme = this.themeService.getCurrentTheme();
+
           const editor = vscode.window.activeTextEditor;
           if (editor) {
-            this.updateDecorations(editor);
+            this.updateDecorations(editor, true); // Immediate for config changes
           }
         }
       })
@@ -135,14 +149,14 @@ export class ExtensionService {
     context.subscriptions.push(
       vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor) {
-          this.updateDecorations(editor);
+          this.updateDecorations(editor, true); // Immediate for editor changes
         }
       }),
 
       vscode.workspace.onDidChangeTextDocument((event) => {
         const editor = vscode.window.activeTextEditor;
         if (editor && event.document === editor.document) {
-          this.updateDecorations(editor);
+          this.updateDecorations(editor); // Debounced for typing
         }
       })
     );
@@ -174,7 +188,7 @@ export class ExtensionService {
     if (vscode.window.activeTextEditor) {
       // Ensure we have the latest theme
       this.activeTheme = this.themeService.getActiveTheme();
-      this.updateDecorations(vscode.window.activeTextEditor);
+      this.updateDecorations(vscode.window.activeTextEditor, true); // Immediate for initialization
     }
   }
 
