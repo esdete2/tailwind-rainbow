@@ -190,7 +190,8 @@
             "sass",
             "less",
             "stylus",
-            "postcss"
+            "postcss",
+            "tailwindcss"
           ],
           "description": "Language identifiers the extension should be active for"
         },

@@ -756,7 +756,7 @@ export class TokenizerService {
 
     // Check if this is a CSS-like file that might contain @apply directives
     const languageId = editor.document.languageId;
-    const cssLikeLanguages = ['css', 'scss', 'sass', 'less', 'stylus', 'postcss'];
+    const cssLikeLanguages = ['css', 'scss', 'sass', 'less', 'stylus', 'postcss', 'tailwindcss'];
 
     if (cssLikeLanguages.includes(languageId)) {
       // For CSS-like files, also process @apply directives
