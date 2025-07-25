@@ -2,7 +2,7 @@
   "name": "tailwind-rainbow",
   "displayName": "Tailwind Rainbow",
   "description": "Syntax highlighting for Tailwind CSS classes with customizable prefix-based coloring themes",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "esdete",
   "keywords": [
     "tailwind",
