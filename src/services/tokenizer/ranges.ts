@@ -1,11 +1,8 @@
 import * as vscode from 'vscode';
 
-interface RangeCandidate {
-  start: number;
-  end: number;
-  rangeKey?: string;
-  config?: ClassConfig;
-}
+import type { ClassToken } from './types';
+
+type RangeCandidate = Pick<ClassToken, 'start' | 'end' | 'rangeKey' | 'config'>;
 
 interface RangeEntry {
   ranges: vscode.Range[];

@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-23T12:03:26.077Z",
+  "environment": {
+    "runner": "vscode-extension-host",
+    "node": "v24.21.0",
+    "vscode": "1.142.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3 Max"
+  },
+  "methodology": {
+    "warmups": 3,
+    "samples": 9,
+    "lexical": "TokenizerService.tokenizeDocument(source)",
+    "themedRanges": "TokenizerService.findClassRanges(editor, defaultTheme)",
+    "excluded": ["debounce", "decoration application", "file IO", "document creation", "result fingerprinting"],
+    "timing": "Individual synchronous calls, not batch averages; empirical p95 is the maximum of nine samples.",
+    "stressLimit": "Repeated-variant corpus is limited to 100k UTF-16 units to bound quadratic overlap work.",
+    "sizeLimit": "Production guard uses UTF-16 source.length; the large Unicode corpus can exceed its nominal limit in UTF-8 bytes."
+  },
+  "productionSha256": {
+    "src/extension.ts": "92fd5dbbf41e1d19270dd766cea7c6b4b47f5466d9c246a4cd9f4c1969c89aaa",
+    "src/services/config.ts": "6e4314ff813832341b2c18c29288e95f186381b5c465ff3018718d3953a8918d",
+    "src/services/decoration.ts": "32e6a422ae6b8add39f239978e0895160f300c85e8540a3cb0a31a5de7c0e76e",
+    "src/services/extension.ts": "96dc8666d0d809aebd8bc4df54a46509f129d3fe5daf260187a9f4db852ef6cc",
+    "src/services/output.ts": "fb2092baefe9ed1ad6ea082055aacf5c7f06ae027418ec0ed9964bca53b819b1",
+    "src/services/theme.ts": "be9863719726d8945659b1b23a355220d31f78f67a464216fa134e4aa0b45730",
+    "src/services/tokenizer.ts": "93f5fc90d69d03ef9400a25151000af344bb9e2b64a59a536d2b6036177c28a5",
+    "src/services/tokenizer/document.ts": "a77f605afda53dea274c415140313402c6f72c9d9eec42066c547f98842f9fb7",
+    "src/services/tokenizer/ranges.ts": "696d861ce3bbd28550dfc382163ce7c937001ef705608f7f8589d4044f57ff4e",
+    "src/services/tokenizer/types.ts": "9f01b2fcdb8c4f7232cbb06322a4f14273ac77b6aaa0cff319f04a985bc348f7",
+    "src/services/utils.ts": "410c5cd231a44e2abc44f640a15426121aa0d5b0af38cafc7a86b4af28dd1e87",
+    "src/themes/default.ts": "9e03b613de09eff2fbeb5e407efd16da80b028ffaabbef627984c8714b840f98",
+    "src/themes/index.ts": "6b89c69563bb65dc810dd8b59db039818da79a76de20549922eda9238a6a138b",
+    "src/themes/synthwave.ts": "eca9a03a450e766c778c2d5e8f1aa31784da4fc75615bb8c0b95c12a9a112eaa",
+    "src/types.d.ts": "eae1ca9c4f3c06feeaca8f134093754fea8438e39f6196037776adac210c6483"
+  },
+  "compiledSha256": {
+    "out/extension.js": "5212abe12324a8708774d8648fd53e3ecdf06b2431561c281a3978c2a160281f",
+    "out/services/config.js": "d44ea4836edf791fff4574ddd33c98151058bb476d9b96cfa1d4ff15a4d7ea90",
+    "out/services/decoration.js": "2c9cde271358b22c3dae30d4428c2d5cdb8d15eb75133b79be88c83764249772",
+    "out/services/extension.js": "7144e867da2f2344355792ac2e41e7b0a6195fa361ab49735679e1f869d88c57",
+    "out/services/output.js": "2416c8febcc138c3ce9e4a3de84bb12fd92dd882da63e081a51414d90f22e6b4",
+    "out/services/theme.js": "24e7002ec411febb1ce454d3420175412ce269e69607087960e6c0e567bb0d4e",
+    "out/services/tokenizer.js": "28cfcc3caaec039a8b672a325baea0e7c3183a2cccb5c0e2994f164ea0cb1391",
+    "out/services/tokenizer/document.js": "61c6249f38a7780a054dcc96be533d05d634fa9f01b14242e3c25fdcef44a868",
+    "out/services/tokenizer/ranges.js": "12666ab038847c9961098f9bd3e6168c9e2e72af0cfd9bdec2fabfa5e9ced1d8",
+    "out/services/tokenizer/types.js": "b0d2bc4142d0c62d43f996aaeb64f22c4889ac853f8a3765758b505d972d0149",
+    "out/services/utils.js": "08e0d97a7661d4eb0981bf91413b088a1963bd36f4540f97c0f75178a0e58228",
+    "out/themes/default.js": "fe98675336166251297aa32812a277ac47f226628dc52335ed878eea83ae4241",
+    "out/themes/index.js": "b270314d71f62489d2d531926445860c04d3608cd17aaf7da2db735bc4be40a9",
+    "out/themes/synthwave.js": "6e0548794759205a620628bd16ec6b298f45b232b4d76f67ad185310626ce963"
+  },
+  "harnessSha256": {
+    "corpus.mjs": "1698c8af733b99c5c07aca78df254f8589e84bde41c0074c58e83f1e16327e18",
+    "measure.mjs": "815497b3546dbabf292f268c8e6c4980abf74cef6a6046efde6a3d312e0b3212",
+    "../support/vscode.cjs": "ea1382aa88ce3f40e42e27d211a90cf046aef451ab4ff47fd7b7d8d484c04985"
+  },
+  "settings": {
+    "maxFileSize": 1000000,
+    "classIdentifiers": ["class", "className", "class:", "className:", "classlist", "classes", "css", "style"],
+    "classFunctions": [
+      "cn",
+      "clsx",
+      "cva",
+      "classNames",
+      "classList",
+      "classnames",
+      "twMerge",
+      "tw",
+      "cls",
+      "cc",
+      "cx",
+      "classname",
+      "styled",
+      "css",
+      "theme",
+      "variants"
+    ],
+    "templatePatterns": ["class", "${", "tw`", "css`", "styled"],
+    "contextPatterns": ["variants", "cva", "class", "css", "style", "@apply"],
+    "ignoredPrefixModifiers": ["group", "peer", "has", "in", "not"]
+  },
+  "themeSha256": "abc241a49e05d4599d94dc38d58dff67981094f682accc597d396f5d0c626d13",
+  "results": [
+    {
+      "name": "html-small",
+      "language": "html",
+      "utf16Units": 10000,
+      "utf8Bytes": 10648,
+      "corpusSha256": "204e2ddac5f23606c781c9c7d1970e9a9c2c9d845c4d71eb39a5bf8b4f5601a0",
+      "outputSha256": "e71ffdb7deca9fbc8e378a113486abd2c956e1ac96af739db6f37eabc29a5a52",
+      "lexical": {
+        "outputCount": 81,
+        "durationsMs": [
+          0.06291600000008657, 0.05404199999998127, 0.05004200000007586, 0.05058299999996052, 0.05550000000005184,
+          0.05841599999996561, 0.05033400000002075, 0.052375000000097316, 0.054708000000005086
+        ],
+        "minMs": 0.05004200000007586,
+        "medianMs": 0.05404199999998127,
+        "p95Ms": 0.06291600000008657,
+        "maxMs": 0.06291600000008657
+      },
+      "themedRanges": {
+        "outputCount": 567,
+        "durationsMs": [
+          0.6405839999999898, 0.5636670000000095, 0.5752080000000888, 0.5617089999999507, 0.5161249999999882,
+          0.5668749999999818, 0.4702919999999722, 0.47216599999990194, 0.4846670000000586
+        ],
+        "minMs": 0.4702919999999722,
+        "medianMs": 0.5617089999999507,
+        "p95Ms": 0.6405839999999898,
+        "maxMs": 0.6405839999999898
+      }
+    },
+    {
+      "name": "html-medium",
+      "language": "html",
+      "utf16Units": 100000,
+      "utf8Bytes": 106552,
+      "corpusSha256": "7d5d5d3a4aec84fb47c967c1551f80defd4217b46a28f52295718079d24f2144",
+      "outputSha256": "2b19bd9758177d41c47ded1fc68e8e25438d45af2bb7eaf302cc701b61f436dc",
+      "lexical": {
+        "outputCount": 819,
+        "durationsMs": [
+          0.21325000000001637, 0.18183299999998326, 0.17704200000002857, 0.17862500000001091, 0.20187499999997272,
+          0.19429200000001856, 0.19191699999998946, 0.17770800000005238, 0.1838749999999436
+        ],
+        "minMs": 0.17704200000002857,
+        "medianMs": 0.1838749999999436,
+        "p95Ms": 0.21325000000001637,
+        "maxMs": 0.21325000000001637
+      },
+      "themedRanges": {
+        "outputCount": 5733,
+        "durationsMs": [
+          5.197000000000003, 4.529374999999959, 4.635749999999916, 5.069875000000025, 5.0620420000000195,
+          4.62379199999998, 4.753459000000021, 4.668291999999951, 4.8637500000000955
+        ],
+        "minMs": 4.529374999999959,
+        "medianMs": 4.753459000000021,
+        "p95Ms": 5.197000000000003,
+        "maxMs": 5.197000000000003
+      }
+    },
+    {
+      "name": "tsx-medium",
+      "language": "typescriptreact",
+      "utf16Units": 100000,
+      "utf8Bytes": 105592,
+      "corpusSha256": "e5dbe6032d882ddf240c2665db4c4c1e537c54a56861598be636b1decdc67d20",
+      "outputSha256": "5da87209d5ae7505c89530dae4ae54d013ad2e16e02002eb1767ba30be785cd1",
+      "lexical": {
+        "outputCount": 699,
+        "durationsMs": [
+          0.2625839999999471, 0.23445800000001782, 0.23433299999999235, 0.23462499999993724, 0.23483299999998053,
+          0.23441700000000765, 0.23441700000000765, 0.234375, 0.23412500000006276
+        ],
+        "minMs": 0.23412500000006276,
+        "medianMs": 0.23441700000000765,
+        "p95Ms": 0.2625839999999471,
+        "maxMs": 0.2625839999999471
+      },
+      "themedRanges": {
+        "outputCount": 4893,
+        "durationsMs": [
+          4.750375000000076, 4.083500000000072, 3.969208999999978, 3.959916000000021, 4.0672499999999445,
+          4.293708000000038, 4.274915999999962, 4.205375000000004, 4.084958000000029
+        ],
+        "minMs": 3.959916000000021,
+        "medianMs": 4.084958000000029,
+        "p95Ms": 4.750375000000076,
+        "maxMs": 4.750375000000076
+      }
+    },
+    {
+      "name": "css-medium",
+      "language": "css",
+      "utf16Units": 100000,
+      "utf8Bytes": 100000,
+      "corpusSha256": "921bd4e72f27c3058cc7f7a2ee489d4b4b1accaa7d924fafb887b1f322608668",
+      "outputSha256": "1b4ef82c10d431f37ff731f1b0ccc90c20cf83b5deafef0bd1923f7523e6bd20",
+      "lexical": {
+        "outputCount": 877,
+        "durationsMs": [
+          0.9618749999999636, 0.9039999999999964, 0.8687499999999773, 0.9100409999999783, 0.22204199999998764,
+          0.22191699999996217, 0.2205829999999196, 0.22058400000003076, 0.22045800000000781
+        ],
+        "minMs": 0.22045800000000781,
+        "medianMs": 0.22204199999998764,
+        "p95Ms": 0.9618749999999636,
+        "maxMs": 0.9618749999999636
+      },
+      "themedRanges": {
+        "outputCount": 6139,
+        "durationsMs": [
+          6.916749999999979, 5.698208999999906, 5.970041999999921, 6.074957999999924, 5.873749999999973,
+          7.492625000000089, 5.79808300000002, 5.996208000000024, 5.902875000000108
+        ],
+        "minMs": 5.698208999999906,
+        "medianMs": 5.970041999999921,
+        "p95Ms": 7.492625000000089,
+        "maxMs": 7.492625000000089
+      }
+    },
+    {
+      "name": "html-large",
+      "language": "html",
+      "utf16Units": 950000,
+      "utf8Bytes": 1012288,
+      "corpusSha256": "89bac3bdda7d102e9a1a17fd2b1dfdb92a94ca0b1cafebd37d8d78b21fe30152",
+      "outputSha256": "2e2793d90d1c33147810a309d34770dc757094afe50e2ed6e391f19d86330663",
+      "lexical": {
+        "outputCount": 7786,
+        "durationsMs": [
+          1.6894580000000587, 1.6362079999998969, 1.624625000000151, 1.6345840000001317, 1.6080000000001746,
+          1.6425000000001546, 1.6213329999998223, 1.6012499999999363, 1.6124999999999545
+        ],
+        "minMs": 1.6012499999999363,
+        "medianMs": 1.624625000000151,
+        "p95Ms": 1.6894580000000587,
+        "maxMs": 1.6894580000000587
+      },
+      "themedRanges": {
+        "outputCount": 54502,
+        "durationsMs": [
+          52.00491699999998, 52.46745800000008, 53.263124999999945, 50.01979099999994, 64.07037500000001,
+          50.803042000000005, 53.21612499999992, 53.122040999999854, 49.865790999999945
+        ],
+        "minMs": 49.865790999999945,
+        "medianMs": 52.46745800000008,
+        "p95Ms": 64.07037500000001,
+        "maxMs": 64.07037500000001
+      }
+    },
+    {
+      "name": "repeated-variants",
+      "language": "html",
+      "utf16Units": 100000,
+      "utf8Bytes": 103472,
+      "corpusSha256": "5d71c4a7c9cb7e17439373db053f4f7c7e5034a181c2ec3e88bbdff54bf9dc66",
+      "outputSha256": "88d87e242963dd9bd968c0b2a69e46952f97842619268c6d6f979437e46c930b",
+      "lexical": {
+        "outputCount": 434,
+        "durationsMs": [
+          0.14225000000010368, 0.1424170000000231, 0.14187500000002728, 0.1423339999998916, 0.14175000000000182,
+          0.1414999999999509, 0.14483300000006238, 0.14191700000014862, 0.14200000000005275
+        ],
+        "minMs": 0.1414999999999509,
+        "medianMs": 0.14200000000005275,
+        "p95Ms": 0.14483300000006238,
+        "maxMs": 0.14483300000006238
+      },
+      "themedRanges": {
+        "outputCount": 5208,
+        "durationsMs": [
+          4.126250000000027, 4.121458000000075, 4.870124999999916, 4.42166700000007, 4.26762500000018,
+          4.426834000000099, 4.339042000000063, 4.286833000000115, 4.3689999999999145
+        ],
+        "minMs": 4.121458000000075,
+        "medianMs": 4.339042000000063,
+        "p95Ms": 4.870124999999916,
+        "maxMs": 4.870124999999916
+      }
+    }
+  ]
+}

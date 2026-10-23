@@ -1,9 +1,10 @@
 # Tokenizer baseline and rebuild boundary
 
 The rebuild uses TypeScript. The committed baseline records the production
-implementation and its regression contract before extraction. The first extracted
-module is range assembly; its [measurements and contract](../benchmarks/range-assembly/README.md)
-document the behavior-preserving optimization against that baseline.
+implementation and its regression contract before extraction. Range assembly has
+its own [measurements and contract](../benchmarks/range-assembly/README.md).
+The [document scanning report](../benchmarks/document-scanning/README.md) records
+the subsequent scanner and shared-type extraction against that comparison point.
 
 ## Verification
 
@@ -91,9 +92,9 @@ range counts and hashes against the regression suite.
 
 ## Proposed TypeScript structure
 
-`TokenizerService` is the editor-facing adapter. Range assembly lives in
-`src/services/tokenizer/ranges.ts`; the remaining proposed modules separate
-the other responsibilities under the same directory:
+`TokenizerService` is the editor-facing adapter. Document scanning, shared token
+types and range assembly live in `src/services/tokenizer/`. Context detection,
+class parsing and theme matching remain proposed extractions under that directory:
 
 | Module        | Responsibility and contract                                                                                |
 | ------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -115,5 +116,5 @@ framework support are separate product changes. The baseline phase does not
 implement the tokenizer replacement.
 
 The completed baseline plan is SDD entry `20261023-104123-d-ops-2e8`.
-The range assembly plan is `20261023-113915-d-ops-9ek`. Project records are managed
-through the CLI.
+The range assembly plan is `20261023-113915-d-ops-9ek`; the document scanning plan
+is `20261023-135603-d-ops-g47`. Project records are managed through the CLI.

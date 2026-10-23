@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { afterEach, beforeEach, test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { cases, corpus } from './benchmark/corpus.mjs';
 
@@ -129,4 +131,24 @@ test('benchmark corpora retain their lexical token fingerprints', async () => {
     assert.equal(tokens.length, expected.tokenCount, scenario.name);
     assert.equal(hash(JSON.stringify(tokens)), expected.tokensSha256, scenario.name);
   }
+});
+
+test('document scanning runs without a VS Code runtime or configuration', () => {
+  const result = execFileSync(
+    process.execPath,
+    [
+      '-e',
+      `const {scanDocument, readQuotedString} = require(process.argv[1]);
+       process.stdout.write(JSON.stringify({
+         tokens: scanDocument('class="sm:flex"'),
+         quoted: readQuotedString('x"abc"', 1, '"')
+       }));`,
+      fileURLToPath(new URL('../out/services/tokenizer/document.js', import.meta.url)),
+    ],
+    { encoding: 'utf8' }
+  );
+  assert.deepEqual(JSON.parse(result), {
+    tokens: [{ type: 'string', content: 'sm:flex', start: 7, end: 14, quote: '"' }],
+    quoted: { endPos: 6, content: 'abc' },
+  });
 });

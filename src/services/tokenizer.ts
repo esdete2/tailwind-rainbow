@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 
 import { ConfigurationManager } from './config';
+import { readQuotedString, scanDocument } from './tokenizer/document';
 import { assembleRanges } from './tokenizer/ranges';
+import type { ClassToken, Token } from './tokenizer/types';
 import { getThemeConfigForBaseClass, getThemeConfigForPrefix } from './utils';
 
 // =============================================================================
@@ -9,41 +11,16 @@ import { getThemeConfigForBaseClass, getThemeConfigForPrefix } from './utils';
 // =============================================================================
 
 const PERFORMANCE_CONSTANTS = {
-  MAX_FILE_SIZE: 1_000_000,
   MAX_CONTENT_LENGTH: 5_000,
   CONTENT_VALIDATION_THRESHOLD: 100,
   CONTEXT_WINDOW_SIZE: 100,
   AFTER_TOKEN_CONTEXT_SIZE: 50,
   EXTENDED_CONTEXT_SIZE: 300,
   APPLY_DIRECTIVE_LENGTH: 6, // '@apply'.length
-  COMMENT_SKIP_LENGTH: 2, // for '//' and similar
   SINGLE_CHAR_SKIP: 1,
-  ESCAPE_CHAR_SKIP: 2, // for '\' + next char
 } as const;
 
-/**
- * Represents a token found during document parsing
- */
-export interface Token {
-  type: 'string' | 'template' | 'comment' | 'other';
-  content: string;
-  start: number;
-  end: number;
-  quote?: string; // For string tokens: ', ", `
-}
-
-/**
- * Represents a processed class token with theme information
- */
-export interface ClassToken {
-  type: 'prefix' | 'class' | 'important';
-  content: string;
-  start: number;
-  end: number;
-  themeKey?: string;
-  rangeKey?: string; // Key used for range mapping (may differ from themeKey)
-  config?: ClassConfig;
-}
+export type { ClassToken, Token } from './tokenizer/types';
 
 /**
  * High-performance tokenizer service for parsing documents and finding Tailwind CSS classes
@@ -54,92 +31,6 @@ export class TokenizerService {
 
   constructor() {
     this.configManager = ConfigurationManager.getInstance();
-  }
-
-  /**
-   * Helper method to parse comment blocks
-   * @param text Document text
-   * @param start Start position
-   * @param startPattern Pattern that starts the comment
-   * @param endPattern Pattern that ends the comment
-   * @returns Object with end position and token
-   */
-  private parseComment(
-    text: string,
-    start: number,
-    startPattern: string,
-    endPattern: string
-  ): { endPos: number; token: Token } {
-    let i = start + startPattern.length;
-    const endIndex = text.indexOf(endPattern, i);
-
-    if (endIndex !== -1) {
-      i = endIndex + endPattern.length;
-    } else {
-      i = text.length;
-    }
-
-    return {
-      endPos: i,
-      token: {
-        type: 'comment',
-        content: text.slice(start, i),
-        start,
-        end: i,
-      },
-    };
-  }
-
-  /**
-   * Helper method to parse line comments (// or #)
-   * @param text Document text
-   * @param start Start position
-   * @returns Object with end position and token
-   */
-  private parseLineComment(text: string, start: number): { endPos: number; token: Token } {
-    let endPos = start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
-    while (endPos < text.length && text[endPos] !== '\n' && text[endPos] !== '\r') {
-      endPos++;
-    }
-
-    return {
-      endPos,
-      token: {
-        type: 'comment',
-        content: text.slice(start, endPos),
-        start,
-        end: endPos,
-      },
-    };
-  }
-
-  /**
-   * Helper method to parse string literals with quote handling
-   * @param text Document text
-   * @param start Start position
-   * @param quote Quote character
-   * @returns Object with end position and content
-   */
-  private parseStringLiteral(text: string, start: number, quote: string): { endPos: number; content: string } {
-    let i = start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
-
-    while (i < text.length) {
-      if (text[i] === '\\' && i + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP < text.length) {
-        i += PERFORMANCE_CONSTANTS.ESCAPE_CHAR_SKIP; // Skip escaped character
-      } else if (text[i] === quote) {
-        i++;
-        break;
-      } else {
-        i++;
-      }
-    }
-
-    const content = text.slice(
-      start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
-      i - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP
-    );
-
-    return { endPos: i, content };
   }
 
   /**
@@ -251,107 +142,9 @@ export class TokenizerService {
     return false;
   }
 
-  /**
-   * Tokenizes a document to find all potential class locations
-   * @param text Document text to parse
-   * @returns Array of tokens containing potential classes
-   */
+  /** Return lexical candidates with document-relative UTF-16 offsets. */
   tokenizeDocument(text: string): Token[] {
-    const tokens: Token[] = [];
-    let i = 0;
-    const length = text.length;
-
-    while (i < length) {
-      const char = text[i];
-
-      // Detect comments using helper methods
-      if (char === '/' && i + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP < length) {
-        const nextChar = text[i + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP];
-        if (nextChar === '/') {
-          // C-style line comment
-          const result = this.parseLineComment(text, i);
-          tokens.push(result.token);
-          i = result.endPos;
-          continue;
-        } else if (nextChar === '*') {
-          // C-style block comment
-          const result = this.parseComment(text, i, '/*', '*/');
-          tokens.push(result.token);
-          i = result.endPos;
-          continue;
-        }
-      } else if (char === '#') {
-        // Shell-style line comment
-        const result = this.parseLineComment(text, i);
-        tokens.push(result.token);
-        i = result.endPos;
-        continue;
-      } else if (char === '<' && text.startsWith('<!--', i)) {
-        // HTML comment block
-        const result = this.parseComment(text, i, '<!--', '-->');
-        tokens.push(result.token);
-        i = result.endPos;
-        continue;
-      } else if (char === '{' && text.startsWith('{/*', i)) {
-        // JSX comment block
-        const result = this.parseComment(text, i, '{/*', '*/}');
-        tokens.push(result.token);
-        i = result.endPos;
-        continue;
-      }
-
-      // Handle string literals with all quote types
-      if (char === '"' || char === "'" || char === '`') {
-        const quote = char;
-        const start = i;
-
-        // Process template literals for dynamic class expressions
-        if (quote === '`') {
-          const parseResult = this.parseStringLiteral(text, start, quote);
-          tokens.push({
-            type: 'template',
-            content: parseResult.content,
-            start: start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
-            end: parseResult.endPos - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
-            quote,
-          });
-          i = parseResult.endPos;
-          continue;
-        }
-
-        // Analyze context for regular string literals
-        const beforeQuote = text.slice(Math.max(0, i - PERFORMANCE_CONSTANTS.CONTEXT_WINDOW_SIZE), i).trim();
-        const hasAttributeContext =
-          beforeQuote.endsWith('=') ||
-          beforeQuote.endsWith('={') ||
-          beforeQuote.endsWith('(') ||
-          beforeQuote.endsWith(',') ||
-          beforeQuote.endsWith('[') ||
-          beforeQuote.endsWith('{') ||
-          beforeQuote.endsWith(':');
-
-        // Only process strings in attribute or function contexts
-        if (hasAttributeContext) {
-          const parseResult = this.parseStringLiteral(text, start, quote);
-          tokens.push({
-            type: 'string',
-            content: parseResult.content,
-            start: start + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
-            end: parseResult.endPos - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP,
-            quote,
-          });
-          i = parseResult.endPos;
-          continue;
-        } else {
-          i++;
-          continue;
-        }
-      }
-
-      i++;
-    }
-
-    return tokens;
+    return scanDocument(text);
   }
 
   /**
@@ -456,7 +249,7 @@ export class TokenizerService {
           const valueStart = quoteStart + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
 
           // Find the closing quote using helper method
-          const parseResult = this.parseStringLiteral(content, quoteStart, quote);
+          const parseResult = readQuotedString(content, quoteStart, quote);
           const valueEnd = parseResult.endPos - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
 
           if (valueEnd >= valueStart) {
