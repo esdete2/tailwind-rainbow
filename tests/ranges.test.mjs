@@ -1,27 +1,22 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { afterEach, beforeEach, test } from 'node:test';
+import { beforeEach, test } from 'node:test';
 
 const require = createRequire(import.meta.url);
 const vscode = require('./support/vscode.cjs');
-const { ConfigurationManager } = require('../out/services/config.js');
-const { TokenizerService } = require('../out/services/tokenizer.js');
+const { assembleRanges } = require('../out/services/tokenizer/ranges.js');
 const config = { color: '#112233' };
 
 beforeEach(() => vscode.reset());
-afterEach(() => ConfigurationManager.getInstance().dispose());
 
 function candidate(start, end, rangeKey = 'hover', style = config) {
   return { type: 'class', content: 'hover:flex', start, end, rangeKey, config: style };
 }
 
-/** Supply themed candidates directly to exercise the service's range assembly contract. */
+/** Supply themed candidates independently of document scanning and class eligibility. */
 function assemble(candidates, source = ' '.repeat(100)) {
   const editor = vscode.createEditor(source);
-  const tokenizer = new TokenizerService();
-  tokenizer.tokenizeDocument = () => [{ type: 'string', content: 'hover:flex', start: 0, end: 10 }];
-  tokenizer.processClassContent = () => candidates;
-  const output = tokenizer.findClassRanges(editor, {});
+  const output = assembleRanges(editor.document, candidates);
   return {
     output,
     offsets: [...output].map(([key, entry]) => [

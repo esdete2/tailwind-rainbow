@@ -1,0 +1,17 @@
+{
+  "vscode": "1.142.0",
+  "node": "v24.21.0",
+  "results": [
+    "ordinary string",
+    "ordinary template",
+    "CSS block comment",
+    "SCSS line comment",
+    "important boundary",
+    "utility collection",
+    "untitled decorations",
+    "disabled decorations",
+    "re-enabled decorations",
+    "registered theme and override removal"
+  ],
+  "passed": 10
+}

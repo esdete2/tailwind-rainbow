@@ -77,6 +77,9 @@ export function scanDocument(text: string): Token[] {
           before.endsWith(',') ||
           before.endsWith('[') ||
           before.endsWith('{') ||
+          before.endsWith('&&') ||
+          before.endsWith('||') ||
+          before.endsWith('?') ||
           before.endsWith(':');
         if (!hasBoundary) {
           i++;

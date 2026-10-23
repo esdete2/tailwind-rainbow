@@ -161,7 +161,7 @@ function parseClass(
           prefixEnd = currentPrefixStart + prefix.length + 1;
         } else {
           // Without a base rule, the final styled prefix owns the remaining class text.
-          prefixEnd = currentPos + classPart.length;
+          prefixEnd = classPart.length;
         }
 
         tokens.push({

@@ -36,6 +36,7 @@
     "lint": "eslint src",
     "test:unit": "pnpm run compile && node tests/run.mjs",
     "test:regressions": "pnpm run compile && node tests/run.mjs --strict",
+    "test:host": "pnpm run compile && node tests/run-host.mjs",
     "bench:tokenizer": "pnpm run compile && node tests/benchmark/run.mjs",
     "bench:tokenizer:host": "pnpm run compile && node tests/benchmark/run.mjs --host",
     "bench:compare": "node tests/benchmark/compare.mjs",

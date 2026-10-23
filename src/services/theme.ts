@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
 import themes from '../themes';
-import { ConfigurationManager } from './config';
 import { OutputService } from './output';
 
 /**
@@ -13,8 +12,8 @@ import { OutputService } from './output';
 export class ThemeService {
   private activeTheme: Theme;
   private outputService = OutputService.getInstance();
-  private configManager = ConfigurationManager.getInstance();
   private themeRegistry = new Map<string, Theme>();
+  private registeredThemes = new Map<string, Theme>();
 
   /**
    * Initializes the theme service by registering built-in themes
@@ -35,7 +34,9 @@ export class ThemeService {
     const selectedTheme = config.get<string>('theme', 'default');
     const customThemes = config.get<Record<string, Theme>>('themes', {});
 
-    // Apply custom themes to registry
+    // Settings overlay stable registrations; rebuilding makes removed overrides disappear.
+    this.themeRegistry.clear();
+    for (const [name, theme] of this.registeredThemes) this.themeRegistry.set(name, theme);
     Object.entries(customThemes).forEach(([name, theme]) => {
       // Get base theme if it exists (built-in or previously registered)
       const baseTheme = this.themeRegistry.get(name) || {};
@@ -48,7 +49,7 @@ export class ThemeService {
         base: { ...baseTheme.base, ...theme.base },
       };
 
-      this.registerTheme(name, mergedTheme);
+      this.themeRegistry.set(name, mergedTheme);
     });
 
     // Get theme
@@ -63,17 +64,9 @@ export class ThemeService {
   }
 
   /**
-   * Updates the active theme by clearing and re-registering all themes
-   * This ensures custom themes are properly merged with the latest settings
+   * Resolve the selected theme from registrations and current settings.
    */
   updateActiveTheme() {
-    // Clear all themes first
-    this.clearThemes();
-
-    // Re-register built-in themes
-    for (const [name, theme] of Object.entries(themes)) {
-      this.registerTheme(name, theme);
-    }
     this.activeTheme = this.getActiveTheme();
   }
 
@@ -131,6 +124,7 @@ export class ThemeService {
    * @param theme The theme configuration
    */
   registerTheme(name: string, theme: Theme) {
+    this.registeredThemes.set(name, theme);
     this.themeRegistry.set(name, theme);
   }
 
@@ -144,9 +138,9 @@ export class ThemeService {
 
   /**
    * Clears all registered themes from the registry
-   * Used when reloading themes from settings
    */
   clearThemes() {
+    this.registeredThemes.clear();
     this.themeRegistry.clear();
   }
 }

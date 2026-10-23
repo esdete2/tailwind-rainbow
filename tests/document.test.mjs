@@ -83,7 +83,18 @@ for (const opener of ['//', '#']) {
 }
 
 test('regular quoted spans require a recognized preceding boundary', () => {
-  for (const prefix of ['class=', 'class={', 'cn(', ',', '[', '{', ':']) {
+  for (const prefix of [
+    'class=',
+    'class={',
+    'cn(',
+    ',',
+    '[',
+    '{',
+    ':',
+    'condition &&',
+    'condition ||',
+    'condition ?',
+  ]) {
     const start = prefix.length + 1;
     assert.deepEqual(scan(`${prefix}"value"`), [
       { type: 'string', content: 'value', start, end: start + 5, quote: '"' },

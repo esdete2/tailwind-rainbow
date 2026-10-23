@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { afterEach, beforeEach, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -57,10 +56,10 @@ test('configured utility calls match names and optional whitespace', () => {
   for (const before of ['CX("', 'notcx("', 'unknown("']) assert.equal(eligible({ before }), false, before);
 });
 
-test('utility call detection respects the short lookbehind boundary', () => {
+test('utility call detection respects the bounded lookbehind', () => {
   vscode.configure({ classFunctions: ['cx'] });
-  assert.equal(eligible({ before: 'cx(' + ' '.repeat(97) }), true);
-  assert.equal(eligible({ before: 'cx(' + ' '.repeat(98) }), false);
+  assert.equal(eligible({ before: 'cx(' + ' '.repeat(297) }), true);
+  assert.equal(eligible({ before: 'cx(' + ' '.repeat(298) }), false);
 });
 
 test('collection boundaries allow utility calls in the extended lookbehind', () => {
@@ -69,19 +68,19 @@ test('collection boundaries allow utility calls in the extended lookbehind', () 
   assert.equal(eligible({ before: 'cx(' + ' '.repeat(297) + '[' }), false);
 });
 
-test('configured context patterns require collection boundaries', () => {
+test('configured context patterns authorize named collection values', () => {
   vscode.configure({ contextPatterns: ['palette'] });
-  for (const boundary of ['[', '{', ',', ':']) {
-    assert.equal(eligible({ before: 'palette' + ' '.repeat(110) + boundary }), true, boundary);
+  for (const boundary of ['[', '{']) {
+    assert.equal(eligible({ before: 'palette = ' + ' '.repeat(110) + boundary }), true, boundary);
   }
-  assert.equal(eligible({ before: 'palette' + ' '.repeat(110) + '(' }), false);
-  assert.equal(eligible({ before: 'PALETTE' + ' '.repeat(110) + '[' }), false);
+  assert.equal(eligible({ before: 'palette' + ' '.repeat(110) + '[' }), false);
+  assert.equal(eligible({ before: 'PALETTE = ' + ' '.repeat(110) + '[' }), false);
 });
 
 test('context patterns respect the extended lookbehind boundary', () => {
   vscode.configure({ contextPatterns: ['palette'] });
-  assert.equal(eligible({ before: 'palette' + ' '.repeat(292) + '[' }), true);
-  assert.equal(eligible({ before: 'palette' + ' '.repeat(293) + '[' }), false);
+  assert.equal(eligible({ before: 'palette=' + ' '.repeat(291) + '[' }), true);
+  assert.equal(eligible({ before: 'palette=' + ' '.repeat(292) + '[' }), false);
 });
 
 test('template patterns retain configured case and quote selection', () => {
@@ -91,11 +90,10 @@ test('template patterns retain configured case and quote selection', () => {
   assert.equal(eligible({ before: 'styled ', quote: '"' }), false);
 });
 
-test('attribute fallback respects lookbehind and lookahead limits', () => {
-  assert.equal(eligible({ before: 'class="' + 'x'.repeat(93) }), true);
-  assert.equal(eligible({ before: 'class="' + 'x'.repeat(94) }), false);
-  assert.equal(eligible({ after: 'x'.repeat(43) + 'class="' }), true);
-  assert.equal(eligible({ after: 'x'.repeat(44) + 'class="' }), false);
+test('nearby attributes do not authorize unrelated payloads', () => {
+  assert.equal(eligible({ before: 'class="value" title="' }), false);
+  assert.equal(eligible({ after: 'class="' }), false);
+  assert.equal(eligible({ before: 'notclass="' }), false);
 });
 
 test('configuration changes affect the next calculation on an existing service', () => {
@@ -109,11 +107,14 @@ test('configuration changes affect the next calculation on an existing service',
   assert.equal(eligible({ before: 'custom("' }, service), true);
 });
 
-test('content and proximity heuristics match their labeled compatibility snapshots', async () => {
-  const fixture = JSON.parse(await readFile(new URL('./fixtures/context-compatibility.json', import.meta.url), 'utf8'));
-  for (const { candidate, accepted } of fixture.candidates)
-    assert.equal(eligible(candidate), accepted, JSON.stringify(candidate));
-  for (const { source, regions } of fixture.directives) assert.deepEqual(applyContents(source), regions);
+test('class-like payloads require an eligible surrounding context', () => {
+  for (const candidate of [
+    { before: 'const message = ', content: 'hello-world' },
+    { before: 'const message = ', content: 'hover:flex' },
+    { content: 'flex', type: 'template', quote: '`' },
+    { before: 'notclass="' },
+  ])
+    assert.equal(eligible(candidate), false, JSON.stringify(candidate));
 });
 
 for (const language of ['css', 'scss', 'sass', 'less', 'stylus', 'postcss', 'tailwindcss']) {

@@ -22,7 +22,7 @@ function requests(content, identifiers = ['class'], emit = false) {
       ? [{ type: 'class', content: text, start, end: start + text.length, rangeKey: 'test', config: {} }]
       : [];
   };
-  service.findClassRanges(vscode.createEditor(' '.repeat(7) + content + ' '), {});
+  service.findClassRanges(vscode.createEditor('class=`' + content + '`'), {});
   return calls;
 }
 
