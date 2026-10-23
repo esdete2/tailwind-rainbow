@@ -1,0 +1,18 @@
+{
+  "sourceCommit": "4d495d653612dc73f33b68ed21329bdb884fcb26",
+  "purpose": "Eligibility compatibility snapshots, not desired highlighting assertions. Content and proximity heuristics accept unrelated text, and CSS discovery does not validate comment or keyword boundaries. Desired highlighting regressions remain explicit known failures in tokenizer.test.mjs. Controlled lexical candidates isolate eligibility from scanner selection.",
+  "candidates": [
+    { "candidate": { "before": "const message = ", "content": "hello-world" }, "accepted": true },
+    { "candidate": { "before": "const message = ", "content": "hover:flex" }, "accepted": true },
+    { "candidate": { "content": "flex", "type": "template", "quote": "`" }, "accepted": true },
+    { "candidate": { "content": "hover:" }, "accepted": false },
+    { "candidate": { "content": ":hover" }, "accepted": false },
+    { "candidate": { "content": ":hover:flex" }, "accepted": false },
+    { "candidate": { "before": "notclass=\"" }, "accepted": true }
+  ],
+  "directives": [
+    { "source": "/* @apply flex; */", "regions": [{ "content": "flex", "start": 10 }] },
+    { "source": "// @apply grid;", "regions": [{ "content": "grid", "start": 10 }] },
+    { "source": "@applyflex;", "regions": [{ "content": "flex", "start": 6 }] }
+  ]
+}
