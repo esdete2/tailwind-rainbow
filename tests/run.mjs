@@ -8,6 +8,7 @@ const result = spawnSync(
     fileURLToPath(new URL('./support/register.mjs', import.meta.url)),
     '--test',
     fileURLToPath(new URL('./tokenizer.test.mjs', import.meta.url)),
+    fileURLToPath(new URL('./document.test.mjs', import.meta.url)),
     fileURLToPath(new URL('./ranges.test.mjs', import.meta.url)),
     fileURLToPath(new URL('./extension.test.mjs', import.meta.url)),
   ],
