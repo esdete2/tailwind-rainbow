@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { afterEach, beforeEach, test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const vscode = require('./support/vscode.cjs');
@@ -146,4 +148,26 @@ test('CSS directives trim whitespace and preserve UTF-16 starts in source order'
 
 test('empty CSS directives emit no content regions', () => {
   assert.deepEqual(applyContents('@apply ; @apply\t; @apply'), []);
+});
+
+test('context detection runs with plain settings without VS Code or configuration', () => {
+  const result = execFileSync(
+    process.execPath,
+    [
+      '-e',
+      `const {isClassContext, findApplyRegions} = require(process.argv[1]);
+       const settings = Object.freeze({
+         classIdentifiers: Object.freeze(['custom']), classFunctions: new Set(),
+         templatePatterns: Object.freeze([]), contextPatterns: Object.freeze([])
+       });
+       const token = Object.freeze({type:'string', content:'flex', start:8, end:12, quote:'"'});
+       process.stdout.write(JSON.stringify({
+         eligible: isClassContext('custom="flex"', token, settings),
+         regions: findApplyRegions('.x{@apply flex;}', 'css')
+       }));`,
+      fileURLToPath(new URL('../out/services/tokenizer/context.js', import.meta.url)),
+    ],
+    { encoding: 'utf8' }
+  );
+  assert.deepEqual(JSON.parse(result), { eligible: true, regions: [{ content: 'flex', start: 10 }] });
 });

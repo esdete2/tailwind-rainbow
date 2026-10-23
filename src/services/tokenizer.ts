@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { ConfigurationManager } from './config';
+import { findApplyRegions, isClassContext } from './tokenizer/context';
 import { readQuotedString, scanDocument } from './tokenizer/document';
 import { assembleRanges } from './tokenizer/ranges';
 import type { ClassToken, Token } from './tokenizer/types';
@@ -13,10 +14,6 @@ import { getThemeConfigForBaseClass, getThemeConfigForPrefix } from './utils';
 const PERFORMANCE_CONSTANTS = {
   MAX_CONTENT_LENGTH: 5_000,
   CONTENT_VALIDATION_THRESHOLD: 100,
-  CONTEXT_WINDOW_SIZE: 100,
-  AFTER_TOKEN_CONTEXT_SIZE: 50,
-  EXTENDED_CONTEXT_SIZE: 300,
-  APPLY_DIRECTIVE_LENGTH: 6, // '@apply'.length
   SINGLE_CHAR_SKIP: 1,
 } as const;
 
@@ -31,115 +28,6 @@ export class TokenizerService {
 
   constructor() {
     this.configManager = ConfigurationManager.getInstance();
-  }
-
-  /**
-   * Checks if a string token is likely to contain class names
-   * @param text Document text
-   * @param token String token to check
-   * @returns True if the token is likely to contain class names
-   */
-  private isClassContext(text: string, token: Token): boolean {
-    const beforeToken = text.slice(Math.max(0, token.start - PERFORMANCE_CONSTANTS.CONTEXT_WINDOW_SIZE), token.start);
-    const afterToken = text.slice(
-      token.end,
-      Math.min(text.length, token.end + PERFORMANCE_CONSTANTS.AFTER_TOKEN_CONTEXT_SIZE)
-    );
-
-    // Process template literals as they commonly contain dynamic class expressions
-    if (token.type === 'template') {
-      return true;
-    }
-
-    // Check for prefix patterns using fast string methods
-    if (token.content.includes(':')) {
-      // Identify prefix patterns by detecting colons within class names
-      const colonIndex = token.content.indexOf(':');
-      if (colonIndex > 0 && colonIndex < token.content.length - PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP) {
-        return true;
-      }
-    }
-
-    // Check for dash-separated patterns common in Tailwind CSS
-    if (token.content.includes('-')) {
-      return true;
-    }
-
-    // Check for class attributes using configurable identifiers
-    const beforeLower = beforeToken.toLowerCase();
-    const lowerCaseIdentifiers = this.configManager.getLowerCaseClassIdentifiers();
-
-    for (const identifier of lowerCaseIdentifiers) {
-      if (beforeLower.includes(identifier + '=') || beforeLower.includes(identifier + ':')) {
-        return true;
-      }
-    }
-
-    // Check for class utility functions using cached set for fast lookup
-    const classFunctionsSet = this.configManager.getClassFunctionsSet();
-    // Extract function names from beforeToken and check against set
-    const functionMatches = beforeToken.match(/\b(\w+)\s*\(/g);
-    if (functionMatches) {
-      for (const match of functionMatches) {
-        const funcName = match.slice(0, -1).trim(); // Remove '(' and whitespace
-        if (classFunctionsSet.has(funcName)) {
-          return true;
-        }
-      }
-    }
-
-    // Check for template literals using cached patterns
-    if (token.quote === '`') {
-      const templatePatterns = this.configManager.getTemplatePatterns();
-      for (const pattern of templatePatterns) {
-        if (beforeToken.includes(pattern)) {
-          return true;
-        }
-      }
-    }
-
-    // Check for array/object contexts using string methods
-    const trimmedBefore = beforeToken.trim();
-    if (
-      trimmedBefore.endsWith('[') ||
-      trimmedBefore.endsWith('{') ||
-      trimmedBefore.endsWith(',') ||
-      trimmedBefore.endsWith(':')
-    ) {
-      // Check for class-related context patterns in extended scope
-      const extendedBefore = text.slice(
-        Math.max(0, token.start - PERFORMANCE_CONSTANTS.EXTENDED_CONTEXT_SIZE),
-        token.start
-      );
-
-      // Detect utility function calls using cached set
-      const classFunctionsSet = this.configManager.getClassFunctionsSet();
-      const functionMatches = extendedBefore.match(/\b(\w+)\s*\(/g);
-      if (functionMatches) {
-        for (const match of functionMatches) {
-          const funcName = match.slice(0, -1).trim();
-          if (classFunctionsSet.has(funcName)) {
-            return true;
-          }
-        }
-      }
-
-      // Match context patterns using cached identifiers
-      const contextPatterns = this.configManager.getContextPatterns();
-      for (const pattern of contextPatterns) {
-        if (extendedBefore.includes(pattern)) {
-          return true;
-        }
-      }
-    }
-
-    // Detect malformed HTML class attributes
-    const combinedContext = beforeToken + token.content + afterToken;
-    if (combinedContext.includes('class=') && (combinedContext.includes('"') || combinedContext.includes("'"))) {
-      return true;
-    }
-
-    return false;
   }
 
   /** Return lexical candidates with document-relative UTF-16 offsets. */
@@ -483,48 +371,6 @@ export class TokenizerService {
   }
 
   /**
-   * Processes @apply directives in CSS-like content using fast string operations
-   * @param text Document text
-   * @param activeTheme Current theme configuration
-   * @returns Array of class tokens from @apply directives
-   */
-  private processApplyDirectives(text: string, activeTheme: Theme): ClassToken[] {
-    const classTokens: ClassToken[] = [];
-    let searchStart = 0;
-
-    while (true) {
-      const applyIndex = text.indexOf('@apply', searchStart);
-      if (applyIndex === -1) break;
-
-      // Find the start of class content (skip whitespace after @apply)
-      let contentStart = applyIndex + PERFORMANCE_CONSTANTS.APPLY_DIRECTIVE_LENGTH;
-      while (contentStart < text.length && /\s/.test(text[contentStart])) {
-        contentStart++;
-      }
-
-      // Find the end of the directive (semicolon, closing brace, or newline)
-      let contentEnd = contentStart;
-      while (contentEnd < text.length) {
-        const char = text[contentEnd];
-        if (char === ';' || char === '}' || char === '\n' || char === '\r') {
-          break;
-        }
-        contentEnd++;
-      }
-
-      const classesContent = text.slice(contentStart, contentEnd).trim();
-      if (classesContent) {
-        const tokens = this.processClassContent(classesContent, contentStart, activeTheme);
-        classTokens.push(...tokens);
-      }
-
-      searchStart = contentEnd + PERFORMANCE_CONSTANTS.SINGLE_CHAR_SKIP;
-    }
-
-    return classTokens;
-  }
-
-  /**
    * Main method to find all class tokens in a document
    * @param editor VS Code text editor
    * @param activeTheme Current theme configuration
@@ -548,21 +394,22 @@ export class TokenizerService {
 
     const allClassTokens: ClassToken[] = [];
 
-    // Check if this is a CSS-like file that might contain @apply directives
-    const languageId = editor.document.languageId;
-    const cssLikeLanguages = ['css', 'scss', 'sass', 'less', 'stylus', 'postcss', 'tailwindcss'];
-
-    if (cssLikeLanguages.includes(languageId)) {
-      // For CSS-like files, also process @apply directives
-      const applyTokens = this.processApplyDirectives(text, activeTheme);
-      allClassTokens.push(...applyTokens);
+    for (const region of findApplyRegions(text, editor.document.languageId)) {
+      allClassTokens.push(...this.processClassContent(region.content, region.start, activeTheme));
     }
 
     const tokens = this.tokenizeDocument(text);
+    // Snapshot settings per document calculation; updates apply to the next calculation.
+    const contextSettings = {
+      classIdentifiers: this.configManager.getLowerCaseClassIdentifiers(),
+      classFunctions: this.configManager.getClassFunctionsSet(),
+      templatePatterns: this.configManager.getTemplatePatterns(),
+      contextPatterns: this.configManager.getContextPatterns(),
+    };
 
     for (const token of tokens) {
       if (token.type === 'string' || token.type === 'template') {
-        if (this.isClassContext(text, token)) {
+        if (isClassContext(text, token, contextSettings)) {
           if (token.type === 'template') {
             const classTokens = this.processTemplateContent(token.content, token.start, activeTheme);
             allClassTokens.push(...classTokens);

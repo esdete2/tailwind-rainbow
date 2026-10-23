@@ -5,6 +5,8 @@ implementation and its regression contract before extraction. Range assembly has
 its own [measurements and contract](../benchmarks/range-assembly/README.md).
 The [document scanning report](../benchmarks/document-scanning/README.md) records
 the subsequent scanner and shared-type extraction against that comparison point.
+The [context detection report](../benchmarks/context-detection/README.md) records
+quoted-span eligibility and CSS directive discovery as an independent module.
 
 ## Verification
 
@@ -93,8 +95,8 @@ range counts and hashes against the regression suite.
 ## Proposed TypeScript structure
 
 `TokenizerService` is the editor-facing adapter. Document scanning, shared token
-types and range assembly live in `src/services/tokenizer/`. Context detection,
-class parsing and theme matching remain proposed extractions under that directory:
+types, context detection and range assembly live in `src/services/tokenizer/`.
+Class parsing and theme matching remain proposed extractions under that directory:
 
 | Module        | Responsibility and contract                                                                                |
 | ------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -117,4 +119,5 @@ implement the tokenizer replacement.
 
 The completed baseline plan is SDD entry `20261023-104123-d-ops-2e8`.
 The range assembly plan is `20261023-113915-d-ops-9ek`; the document scanning plan
-is `20261023-135603-d-ops-g47`. Project records are managed through the CLI.
+is `20261023-135603-d-ops-g47`. Context detection is tracked by
+`20261023-151112-d-ops-vg0`. Project records are managed through the CLI.
