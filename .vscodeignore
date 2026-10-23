@@ -9,3 +9,12 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+prototypes/**
+tests/**
+benchmarks/**
+.sdd/**
+.agents/**
+.codex/**
+AGENTS.md
+CLAUDE.md
+docs/tokenizer-rebuild.md

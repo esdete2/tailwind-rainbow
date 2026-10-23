@@ -34,6 +34,11 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run build",
     "lint": "eslint src",
+    "test:unit": "pnpm run compile && node tests/run.mjs",
+    "test:regressions": "pnpm run compile && node tests/run.mjs --strict",
+    "bench:tokenizer": "pnpm run compile && node tests/benchmark/run.mjs",
+    "bench:tokenizer:host": "pnpm run compile && node tests/benchmark/run.mjs --host",
+    "bench:compare": "node tests/benchmark/compare.mjs",
     "test": "rm -rf .vscode-test/user-data && rm -rf .vscode-test/extensions && node ./out/test/runTest.js",
     "build": "vsce package --no-dependencies -o tailwind-rainbow.vsix",
     "build:install": "pnpm run build && code --install-extension tailwind-rainbow.vsix"

@@ -4,3 +4,9 @@ node_modules
 /benchmark
 .vscode-test/
 *.vsix
+.sdd/tmp/
+.sdd/config.local.yaml
+.sdd/stats/
+.sdd/sessions/
+.sdd/staged-blobs/
+.sdd/graph/.sdd-runtime/

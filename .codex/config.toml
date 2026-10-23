@@ -1,6 +1,0 @@
-[mcp_servers.sdd]
-command = "sdd"
-args = ["serve"]
-cwd = "."
-default_tools_approval_mode = "approve"
-env_vars = ["SSH_AUTH_SOCK"]
