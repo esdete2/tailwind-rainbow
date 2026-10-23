@@ -10,7 +10,7 @@ export interface Token {
   quote?: string;
 }
 
-/** Contiguous class-list content with surrounding whitespace removed and a UTF-16 document start. */
+/** Contiguous class-list content with a document-relative UTF-16 start. */
 export interface ClassRegion {
   content: string;
   start: number;

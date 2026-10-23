@@ -1,4 +1,4 @@
-# Tokenizer baseline and rebuild boundary
+# Tokenizer structure and verification
 
 The rebuild uses TypeScript. The committed baseline records the production
 implementation and its regression contract before extraction. Range assembly has
@@ -7,6 +7,8 @@ The [document scanning report](../benchmarks/document-scanning/README.md) record
 the subsequent scanner and shared-type extraction against that comparison point.
 The [context detection report](../benchmarks/context-detection/README.md) records
 quoted-span eligibility and CSS directive discovery as an independent module.
+The [structural completion report](../benchmarks/tokenizer-structure/README.md)
+records the class parser, theme resolver and template-discovery extraction.
 
 ## Verification
 
@@ -16,7 +18,7 @@ not change the extension's VS Code runtime requirement.
 
 The pinned VSIX packaging tool fails under Node 25 because a dependency uses
 the removed `SlowBuffer` API. Packaging exclusions were checked with Node 24;
-dependency modernization is outside this baseline phase.
+dependency modernization is separate from the tokenizer rebuild.
 
 ```sh
 pnpm run test:unit
@@ -56,7 +58,7 @@ pnpm run bench:tokenizer:host --output benchmarks/current-host.json
 ```
 
 The Node runner uses the API test double. The host runner uses actual VS Code
-documents, `positionAt`, `offsetAt` and `Range.intersection`. It creates a fresh
+documents, `positionAt`, `offsetAt` and `Range` objects. It creates a fresh
 temporary user-data and extensions profile, leaving the normal editor profile
 alone. Without an executable override it downloads VS Code 1.96.0, the supported
 minimum. To use an installed version, set `VSCODE_EXECUTABLE_PATH` to its native
@@ -92,20 +94,20 @@ reported alongside speed so skipped work cannot silently count as an
 optimization. A deliberate correctness change requires reviewing the affected
 range counts and hashes against the regression suite.
 
-## Proposed TypeScript structure
+## TypeScript structure
 
-`TokenizerService` is the editor-facing adapter. Document scanning, shared token
-types, context detection and range assembly live in `src/services/tokenizer/`.
-Class parsing and theme matching remain proposed extractions under that directory:
+`TokenizerService` coordinates configuration, discovery, parsing and range assembly.
+The focused modules live in `src/services/tokenizer/`. Parsing, context detection
+and theme resolution accept explicit data without editor or configuration services:
 
-| Module        | Responsibility and contract                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------- |
-| `types.ts`    | Shared tokens and half-open UTF-16 offsets, independent of editor objects.                                 |
-| `document.ts` | Lex strings, templates and comments; preserve lexical state for incomplete input.                          |
-| `context.ts`  | Recognize configured class attributes, calls, templates and CSS directives before accepting class content. |
-| `classes.ts`  | Split class lists and variants while respecting brackets, parentheses, quotes and escapes.                 |
-| `theme.ts`    | Resolve exact, normalized and wildcard rules with explicit priority; keep styling separate from syntax.    |
-| `ranges.ts`   | Assemble themed ranges and remove duplicates without scanning every prior range.                           |
+| Module        | Responsibility and contract                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| `types.ts`    | Shared tokens, class-content regions and document-relative UTF-16 offsets.                                   |
+| `document.ts` | Scan quoted spans and comments, with a shared quoted-string reader and explicit incomplete-input boundaries. |
+| `context.ts`  | Apply eligibility heuristics and discover CSS directives and template attributes in their established order. |
+| `classes.ts`  | Split class lists and variants with square-bracket tracking, size guards and themed fragment boundaries.     |
+| `theme.ts`    | Resolve special, exact, normalized, grouped and wildcard rules with explicit priority.                       |
+| `ranges.ts`   | Normalize document offsets and accept ranges through an AVL interval index, retaining input priority.        |
 
 Comments should explain offset units, lexical boundaries, recovery rules and
 lookup priority where those constraints are non-obvious. Names describe enduring
@@ -114,10 +116,12 @@ replace context extraction or prove full-service performance.
 
 Incremental region invalidation and worker scheduling follow profiling of the
 complete pipeline. Prefix-only coloring, category palettes and additional
-framework support are separate product changes. The baseline phase does not
-implement the tokenizer replacement.
+framework support are separate product changes. The structural split preserves
+current highlighting behavior; the recorded correctness failures remain the
+next phase. Malformed-input compatibility snapshots do not define desired highlighting.
 
 The completed baseline plan is SDD entry `20261023-104123-d-ops-2e8`.
 The range assembly plan is `20261023-113915-d-ops-9ek`; the document scanning plan
 is `20261023-135603-d-ops-g47`. Context detection is tracked by
-`20261023-151112-d-ops-vg0`. Project records are managed through the CLI.
+`20261023-151112-d-ops-vg0`. Structural completion is tracked by
+`20261023-174844-d-ops-c9d`. Project records are managed through the CLI.

@@ -1,3 +1,4 @@
+import { readQuotedString } from './document';
 import type { ClassRegion, Token } from './types';
 
 const LOOKBEHIND = 100;
@@ -93,6 +94,45 @@ export function findApplyRegions(text: string, languageId: string): ClassRegion[
     const content = text.slice(start, end).trim();
     if (content) regions.push({ content, start });
     searchStart = end + 1;
+  }
+  return regions;
+}
+
+/**
+ * Discover quoted template attributes in configured identifier order, retaining repeated matches.
+ * Identifiers are lowercased by the caller; payload whitespace and UTF-16 offsets are preserved.
+ */
+export function findTemplateRegions(
+  content: string,
+  startOffset: number,
+  identifiers: readonly string[]
+): ClassRegion[] {
+  const regions: ClassRegion[] = [];
+  const lowerContent = content.toLowerCase();
+  for (const identifier of identifiers) {
+    const pattern = identifier + '=';
+    let searchIndex = 0;
+    while (true) {
+      const index = lowerContent.indexOf(pattern, searchIndex);
+      if (index === -1) break;
+      let quoteStart = index + pattern.length;
+      while (
+        quoteStart < content.length &&
+        (content[quoteStart] === ' ' ||
+          content[quoteStart] === '\t' ||
+          content[quoteStart] === '\n' ||
+          content[quoteStart] === '\r')
+      )
+        quoteStart++;
+
+      if (quoteStart < content.length && (content[quoteStart] === '"' || content[quoteStart] === "'")) {
+        const result = readQuotedString(content, quoteStart, content[quoteStart]);
+        if (result.endPos - 1 >= quoteStart + 1) {
+          regions.push({ content: result.content, start: startOffset + quoteStart + 1 });
+        }
+      }
+      searchIndex = index + 1;
+    }
   }
   return regions;
 }

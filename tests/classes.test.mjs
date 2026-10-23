@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { afterEach, beforeEach, test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const vscode = require('./support/vscode.cjs');
@@ -110,4 +112,33 @@ test('malformed class content retains its labeled compatibility outcomes', async
       assert.throws(() => parse(item.content, item.theme, item.offset), { name: item.error }, item.content);
     else assert.deepEqual(parse(item.content, item.theme, item.offset), item.tokens, item.content);
   }
+});
+
+test('class parsing and theme resolution run without VS Code or configuration', () => {
+  const result = execFileSync(
+    process.execPath,
+    [
+      '-e',
+      `const {parseClassContent} = require(process.argv[1]);
+       const {lookupPrefix} = require(process.argv[2]);
+       const {findTemplateRegions} = require(process.argv[3]);
+       const style = Object.freeze({color:'#112233'});
+       const theme = Object.freeze({prefix:Object.freeze({hover:style})});
+       const modifiers = Object.freeze([]);
+       process.stdout.write(JSON.stringify({
+         fragments:parseClassContent('hover:flex',3,theme,modifiers).map(t=>[t.rangeKey,t.start,t.end]),
+         rule:lookupPrefix(theme,'hover',modifiers).color,
+         regions:findTemplateRegions('<x class="flex">',2,Object.freeze(['class']))
+       }));`,
+      ...['classes', 'theme', 'context'].map((name) =>
+        fileURLToPath(new URL(`../out/services/tokenizer/${name}.js`, import.meta.url))
+      ),
+    ],
+    { encoding: 'utf8' }
+  );
+  assert.deepEqual(JSON.parse(result), {
+    fragments: [['hover', 3, 13]],
+    rule: '#112233',
+    regions: [{ content: 'flex', start: 12 }],
+  });
 });
