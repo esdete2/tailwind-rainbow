@@ -225,3 +225,31 @@ test('range assembly agrees with first-accepted interval selection across candid
     assert.deepEqual(assemble(candidates).offsets, [...expected], `Candidate order ${scenario}`);
   }
 });
+
+test('range assembly handles ordered and shuffled candidates without pairwise API intersections', () => {
+  const ascending = Array.from({ length: 12000 }, (_, index) => index);
+  const descending = [...ascending].reverse();
+  const shuffled = [...ascending];
+  let state = 0x94321;
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    const j = state % (i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  const original = vscode.Range.prototype.intersection;
+  vscode.Range.prototype.intersection = () => {
+    throw new Error('Range assembly must use its interval index instead of pairwise Range.intersection calls');
+  };
+  try {
+    for (const order of [ascending, descending, shuffled]) {
+      const candidates = order.map((index) => candidate(index * 4 + 1, index * 4 + 2));
+      candidates.push(...ascending.map((index) => candidate(index * 4, index * 4 + 3)));
+      assert.deepEqual(assemble(candidates, ' '.repeat(48000)).offsets, [
+        ['hover', order.map((index) => [index * 4 + 1, index * 4 + 2])],
+      ]);
+    }
+  } finally {
+    vscode.Range.prototype.intersection = original;
+  }
+});

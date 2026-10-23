@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { ConfigurationManager } from './config';
+import { assembleRanges } from './tokenizer/ranges';
 import { getThemeConfigForBaseClass, getThemeConfigForPrefix } from './utils';
 
 // =============================================================================
@@ -780,32 +781,6 @@ export class TokenizerService {
       }
     }
 
-    // Group tokens by range key and convert to VS Code ranges with config
-    const rangeMap = new Map<string, { ranges: vscode.Range[]; config: ClassConfig }>();
-
-    for (const classToken of allClassTokens) {
-      if (classToken.rangeKey && classToken.config) {
-        const mapKey = classToken.rangeKey;
-        if (!rangeMap.has(mapKey)) {
-          rangeMap.set(mapKey, { ranges: [], config: classToken.config });
-        }
-
-        const startPos = editor.document.positionAt(classToken.start);
-        const endPos = editor.document.positionAt(classToken.end);
-        const newRange = new vscode.Range(startPos, endPos);
-
-        const existingEntry = rangeMap.get(mapKey)!;
-
-        const hasOverlap = existingEntry.ranges.some(
-          (existingRange) => newRange.intersection(existingRange) !== undefined
-        );
-
-        if (!hasOverlap) {
-          existingEntry.ranges.push(newRange);
-        }
-      }
-    }
-
-    return rangeMap;
+    return assembleRanges(editor.document, allClassTokens);
   }
 }

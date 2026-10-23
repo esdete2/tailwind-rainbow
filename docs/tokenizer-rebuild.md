@@ -1,8 +1,9 @@
 # Tokenizer baseline and rebuild boundary
 
-The rebuild uses TypeScript. Its first milestone is a repeatable baseline and
-regression contract for the production implementation. Production services stay
-unchanged while those measurements and expectations are reviewed.
+The rebuild uses TypeScript. The committed baseline records the production
+implementation and its regression contract before extraction. The first extracted
+module is range assembly; its [measurements and contract](../benchmarks/range-assembly/README.md)
+document the behavior-preserving optimization against that baseline.
 
 ## Verification
 
@@ -90,8 +91,9 @@ range counts and hashes against the regression suite.
 
 ## Proposed TypeScript structure
 
-Keep `TokenizerService` as the editor-facing adapter and split its responsibilities
-into focused modules under `src/services/tokenizer/`:
+`TokenizerService` is the editor-facing adapter. Range assembly lives in
+`src/services/tokenizer/ranges.ts`; the remaining proposed modules separate
+the other responsibilities under the same directory:
 
 | Module        | Responsibility and contract                                                                                |
 | ------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -112,4 +114,6 @@ complete pipeline. Prefix-only coloring, category palettes and additional
 framework support are separate product changes. The baseline phase does not
 implement the tokenizer replacement.
 
-The approved plan is SDD entry `20261023-104123-d-ops-2e8`, managed through the CLI.
+The completed baseline plan is SDD entry `20261023-104123-d-ops-2e8`.
+The range assembly plan is `20261023-113915-d-ops-9ek`. Project records are managed
+through the CLI.

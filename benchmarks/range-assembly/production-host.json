@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-23T09:43:48.921Z",
+  "environment": {
+    "runner": "vscode-extension-host",
+    "node": "v24.21.0",
+    "vscode": "1.142.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3 Max"
+  },
+  "methodology": {
+    "warmups": 3,
+    "samples": 9,
+    "lexical": "TokenizerService.tokenizeDocument(source)",
+    "themedRanges": "TokenizerService.findClassRanges(editor, defaultTheme)",
+    "excluded": ["debounce", "decoration application", "file IO", "document creation", "result fingerprinting"],
+    "timing": "Individual synchronous calls, not batch averages; empirical p95 is the maximum of nine samples.",
+    "stressLimit": "Repeated-variant corpus is limited to 100k UTF-16 units to bound quadratic overlap work.",
+    "sizeLimit": "Production guard uses UTF-16 source.length; the large Unicode corpus can exceed its nominal limit in UTF-8 bytes."
+  },
+  "productionSha256": {
+    "src/extension.ts": "92fd5dbbf41e1d19270dd766cea7c6b4b47f5466d9c246a4cd9f4c1969c89aaa",
+    "src/services/config.ts": "6e4314ff813832341b2c18c29288e95f186381b5c465ff3018718d3953a8918d",
+    "src/services/decoration.ts": "32e6a422ae6b8add39f239978e0895160f300c85e8540a3cb0a31a5de7c0e76e",
+    "src/services/extension.ts": "96dc8666d0d809aebd8bc4df54a46509f129d3fe5daf260187a9f4db852ef6cc",
+    "src/services/output.ts": "fb2092baefe9ed1ad6ea082055aacf5c7f06ae027418ec0ed9964bca53b819b1",
+    "src/services/theme.ts": "be9863719726d8945659b1b23a355220d31f78f67a464216fa134e4aa0b45730",
+    "src/services/tokenizer.ts": "d523dec5c8a52bf2fd683aae6225fde999272bfd9a9f5fa4b145321e31fd7c8e",
+    "src/services/tokenizer/ranges.ts": "610519dc32a6fb7a242983a9f42215ef12443df8ef6fbf2f856084041ddb8063",
+    "src/services/utils.ts": "410c5cd231a44e2abc44f640a15426121aa0d5b0af38cafc7a86b4af28dd1e87",
+    "src/themes/default.ts": "9e03b613de09eff2fbeb5e407efd16da80b028ffaabbef627984c8714b840f98",
+    "src/themes/index.ts": "6b89c69563bb65dc810dd8b59db039818da79a76de20549922eda9238a6a138b",
+    "src/themes/synthwave.ts": "eca9a03a450e766c778c2d5e8f1aa31784da4fc75615bb8c0b95c12a9a112eaa",
+    "src/types.d.ts": "eae1ca9c4f3c06feeaca8f134093754fea8438e39f6196037776adac210c6483"
+  },
+  "compiledSha256": {
+    "out/extension.js": "5212abe12324a8708774d8648fd53e3ecdf06b2431561c281a3978c2a160281f",
+    "out/services/config.js": "d44ea4836edf791fff4574ddd33c98151058bb476d9b96cfa1d4ff15a4d7ea90",
+    "out/services/decoration.js": "2c9cde271358b22c3dae30d4428c2d5cdb8d15eb75133b79be88c83764249772",
+    "out/services/extension.js": "7144e867da2f2344355792ac2e41e7b0a6195fa361ab49735679e1f869d88c57",
+    "out/services/output.js": "2416c8febcc138c3ce9e4a3de84bb12fd92dd882da63e081a51414d90f22e6b4",
+    "out/services/theme.js": "24e7002ec411febb1ce454d3420175412ce269e69607087960e6c0e567bb0d4e",
+    "out/services/tokenizer.js": "58d7103ed3ed2865cd68081767bbc261a9248c7b6143e899b23cfdf564bb7b0c",
+    "out/services/tokenizer/ranges.js": "12666ab038847c9961098f9bd3e6168c9e2e72af0cfd9bdec2fabfa5e9ced1d8",
+    "out/services/utils.js": "08e0d97a7661d4eb0981bf91413b088a1963bd36f4540f97c0f75178a0e58228",
+    "out/themes/default.js": "fe98675336166251297aa32812a277ac47f226628dc52335ed878eea83ae4241",
+    "out/themes/index.js": "b270314d71f62489d2d531926445860c04d3608cd17aaf7da2db735bc4be40a9",
+    "out/themes/synthwave.js": "6e0548794759205a620628bd16ec6b298f45b232b4d76f67ad185310626ce963"
+  },
+  "harnessSha256": {
+    "corpus.mjs": "1698c8af733b99c5c07aca78df254f8589e84bde41c0074c58e83f1e16327e18",
+    "measure.mjs": "815497b3546dbabf292f268c8e6c4980abf74cef6a6046efde6a3d312e0b3212",
+    "../support/vscode.cjs": "ea1382aa88ce3f40e42e27d211a90cf046aef451ab4ff47fd7b7d8d484c04985"
+  },
+  "settings": {
+    "maxFileSize": 1000000,
+    "classIdentifiers": ["class", "className", "class:", "className:", "classlist", "classes", "css", "style"],
+    "classFunctions": [
+      "cn",
+      "clsx",
+      "cva",
+      "classNames",
+      "classList",
+      "classnames",
+      "twMerge",
+      "tw",
+      "cls",
+      "cc",
+      "cx",
+      "classname",
+      "styled",
+      "css",
+      "theme",
+      "variants"
+    ],
+    "templatePatterns": ["class", "${", "tw`", "css`", "styled"],
+    "contextPatterns": ["variants", "cva", "class", "css", "style", "@apply"],
+    "ignoredPrefixModifiers": ["group", "peer", "has", "in", "not"]
+  },
+  "themeSha256": "abc241a49e05d4599d94dc38d58dff67981094f682accc597d396f5d0c626d13",
+  "results": [
+    {
+      "name": "html-small",
+      "language": "html",
+      "utf16Units": 10000,
+      "utf8Bytes": 10648,
+      "corpusSha256": "204e2ddac5f23606c781c9c7d1970e9a9c2c9d845c4d71eb39a5bf8b4f5601a0",
+      "outputSha256": "e71ffdb7deca9fbc8e378a113486abd2c956e1ac96af739db6f37eabc29a5a52",
+      "lexical": {
+        "outputCount": 81,
+        "durationsMs": [
+          0.05075000000005048, 0.043874999999957254, 0.04291599999999107, 0.04275000000001228, 0.04295799999999872,
+          0.043000000000006366, 0.042124999999998636, 0.042124999999998636, 0.042499999999961346
+        ],
+        "minMs": 0.042124999999998636,
+        "medianMs": 0.04291599999999107,
+        "p95Ms": 0.05075000000005048,
+        "maxMs": 0.05075000000005048
+      },
+      "themedRanges": {
+        "outputCount": 567,
+        "durationsMs": [
+          0.5525410000000193, 0.546416000000022, 0.5381249999999795, 0.7776250000000005, 0.5391669999999635,
+          0.5232500000000186, 2.126292000000035, 0.5092500000000086, 0.48195900000001757
+        ],
+        "minMs": 0.48195900000001757,
+        "medianMs": 0.5391669999999635,
+        "p95Ms": 2.126292000000035,
+        "maxMs": 2.126292000000035
+      }
+    },
+    {
+      "name": "html-medium",
+      "language": "html",
+      "utf16Units": 100000,
+      "utf8Bytes": 106552,
+      "corpusSha256": "7d5d5d3a4aec84fb47c967c1551f80defd4217b46a28f52295718079d24f2144",
+      "outputSha256": "2b19bd9758177d41c47ded1fc68e8e25438d45af2bb7eaf302cc701b61f436dc",
+      "lexical": {
+        "outputCount": 819,
+        "durationsMs": [
+          0.17745800000000145, 0.17512499999998, 0.17875000000003638, 0.17762499999992087, 0.2325829999999769,
+          0.17341699999997218, 0.17070799999999053, 0.17074999999999818, 0.17862500000001091
+        ],
+        "minMs": 0.17070799999999053,
+        "medianMs": 0.17745800000000145,
+        "p95Ms": 0.2325829999999769,
+        "maxMs": 0.2325829999999769
+      },
+      "themedRanges": {
+        "outputCount": 5733,
+        "durationsMs": [
+          4.802707999999939, 4.807291999999961, 4.9553339999999935, 4.596166999999923, 4.536500000000046,
+          4.694208000000003, 4.845124999999939, 4.466625000000022, 4.446792000000073
+        ],
+        "minMs": 4.446792000000073,
+        "medianMs": 4.694208000000003,
+        "p95Ms": 4.9553339999999935,
+        "maxMs": 4.9553339999999935
+      }
+    },
+    {
+      "name": "tsx-medium",
+      "language": "typescriptreact",
+      "utf16Units": 100000,
+      "utf8Bytes": 105592,
+      "corpusSha256": "e5dbe6032d882ddf240c2665db4c4c1e537c54a56861598be636b1decdc67d20",
+      "outputSha256": "5da87209d5ae7505c89530dae4ae54d013ad2e16e02002eb1767ba30be785cd1",
+      "lexical": {
+        "outputCount": 699,
+        "durationsMs": [
+          0.186458000000016, 0.18454099999996743, 0.18441699999993943, 0.18470800000000054, 0.18345799999997325,
+          0.18904199999997218, 0.2255840000000262, 0.20699999999999363, 0.1894999999999527
+        ],
+        "minMs": 0.18345799999997325,
+        "medianMs": 0.186458000000016,
+        "p95Ms": 0.2255840000000262,
+        "maxMs": 0.2255840000000262
+      },
+      "themedRanges": {
+        "outputCount": 4893,
+        "durationsMs": [
+          4.337416999999959, 4.3810419999999795, 6.176207999999974, 4.213292000000024, 3.931459000000018,
+          3.888541000000032, 4.189000000000078, 4.29099999999994, 4.2992080000000215
+        ],
+        "minMs": 3.888541000000032,
+        "medianMs": 4.29099999999994,
+        "p95Ms": 6.176207999999974,
+        "maxMs": 6.176207999999974
+      }
+    },
+    {
+      "name": "css-medium",
+      "language": "css",
+      "utf16Units": 100000,
+      "utf8Bytes": 100000,
+      "corpusSha256": "921bd4e72f27c3058cc7f7a2ee489d4b4b1accaa7d924fafb887b1f322608668",
+      "outputSha256": "1b4ef82c10d431f37ff731f1b0ccc90c20cf83b5deafef0bd1923f7523e6bd20",
+      "lexical": {
+        "outputCount": 877,
+        "durationsMs": [
+          0.8703749999999673, 0.8672910000000229, 0.917709000000059, 0.8607500000000528, 0.877207999999996,
+          0.9597499999999854, 0.22687499999994998, 0.2231249999999818, 0.2241669999999658
+        ],
+        "minMs": 0.2231249999999818,
+        "medianMs": 0.8672910000000229,
+        "p95Ms": 0.9597499999999854,
+        "maxMs": 0.9597499999999854
+      },
+      "themedRanges": {
+        "outputCount": 6139,
+        "durationsMs": [
+          6.143790999999965, 6.5100419999999986, 5.709375000000023, 5.861957999999959, 5.776000000000067,
+          5.803708000000029, 5.80662499999994, 5.970625000000041, 5.768500000000017
+        ],
+        "minMs": 5.709375000000023,
+        "medianMs": 5.80662499999994,
+        "p95Ms": 6.5100419999999986,
+        "maxMs": 6.5100419999999986
+      }
+    },
+    {
+      "name": "html-large",
+      "language": "html",
+      "utf16Units": 950000,
+      "utf8Bytes": 1012288,
+      "corpusSha256": "89bac3bdda7d102e9a1a17fd2b1dfdb92a94ca0b1cafebd37d8d78b21fe30152",
+      "outputSha256": "2e2793d90d1c33147810a309d34770dc757094afe50e2ed6e391f19d86330663",
+      "lexical": {
+        "outputCount": 7786,
+        "durationsMs": [
+          2.030416999999943, 2.028957999999875, 2.028124999999818, 2.0299159999999574, 2.0242910000001757,
+          2.0220419999998285, 2.021208999999999, 2.022416000000021, 2.0231250000001637
+        ],
+        "minMs": 2.021208999999999,
+        "medianMs": 2.0242910000001757,
+        "p95Ms": 2.030416999999943,
+        "maxMs": 2.030416999999943
+      },
+      "themedRanges": {
+        "outputCount": 54502,
+        "durationsMs": [
+          50.74375000000009, 52.10874999999987, 54.91116699999998, 50.611625000000004, 50.24849999999992,
+          51.471457999999984, 51.213665999999876, 52.2454580000001, 50.991165999999794
+        ],
+        "minMs": 50.24849999999992,
+        "medianMs": 51.213665999999876,
+        "p95Ms": 54.91116699999998,
+        "maxMs": 54.91116699999998
+      }
+    },
+    {
+      "name": "repeated-variants",
+      "language": "html",
+      "utf16Units": 100000,
+      "utf8Bytes": 103472,
+      "corpusSha256": "5d71c4a7c9cb7e17439373db053f4f7c7e5034a181c2ec3e88bbdff54bf9dc66",
+      "outputSha256": "88d87e242963dd9bd968c0b2a69e46952f97842619268c6d6f979437e46c930b",
+      "lexical": {
+        "outputCount": 434,
+        "durationsMs": [
+          0.19845900000018446, 0.1924589999998716, 0.19858399999998255, 0.1894999999999527, 0.1990410000000793,
+          0.20487499999990177, 0.20262499999989814, 0.1938750000001619, 0.19170800000006238
+        ],
+        "minMs": 0.1894999999999527,
+        "medianMs": 0.19845900000018446,
+        "p95Ms": 0.20487499999990177,
+        "maxMs": 0.20487499999990177
+      },
+      "themedRanges": {
+        "outputCount": 5208,
+        "durationsMs": [
+          4.685165999999981, 4.4877500000000055, 4.615083000000141, 4.285542000000078, 4.307375000000093,
+          4.599042000000054, 4.125332999999955, 4.3899169999999685, 4.149458999999979
+        ],
+        "minMs": 4.125332999999955,
+        "medianMs": 4.3899169999999685,
+        "p95Ms": 4.685165999999981,
+        "maxMs": 4.685165999999981
+      }
+    }
+  ]
+}
