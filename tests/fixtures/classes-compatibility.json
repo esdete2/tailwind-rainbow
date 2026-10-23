@@ -1,0 +1,359 @@
+{
+  "sourceCommit": "9a4a812946d1c8a063dfe65d94e92ebc41d3b8a0",
+  "purpose": "Malformed-input compatibility snapshots, not desired highlighting assertions. These retain incomplete bracket handling, whitespace behavior, important-tail overflow and lone-important exceptions during structural extraction. Desired important-prefix boundaries remain an explicit failing regression.",
+  "cases": [
+    {
+      "content": "!",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "error": "TypeError"
+    },
+    {
+      "content": "!hover:flex",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": [
+        {
+          "type": "important",
+          "content": "!",
+          "start": 5,
+          "end": 6,
+          "themeKey": "important",
+          "rangeKey": "important",
+          "config": {
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "type": "class",
+          "content": "hover:flex",
+          "start": 6,
+          "end": 12,
+          "themeKey": "hover",
+          "rangeKey": "hover",
+          "config": {
+            "color": "#112233"
+          }
+        },
+        {
+          "type": "class",
+          "content": "hover:flex",
+          "start": 12,
+          "end": 16,
+          "themeKey": "flex",
+          "rangeKey": "flex",
+          "config": {
+            "color": "#445566"
+          }
+        }
+      ]
+    },
+    {
+      "content": "hover::flex",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": [
+        {
+          "type": "class",
+          "content": "hover::flex",
+          "start": 5,
+          "end": 11,
+          "themeKey": "hover",
+          "rangeKey": "hover",
+          "config": {
+            "color": "#112233"
+          }
+        },
+        {
+          "type": "class",
+          "content": "hover::flex",
+          "start": 12,
+          "end": 16,
+          "themeKey": "flex",
+          "rangeKey": "flex",
+          "config": {
+            "color": "#445566"
+          }
+        }
+      ]
+    },
+    {
+      "content": "[broken:hover:flex",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": []
+    },
+    {
+      "content": "hover]::flex",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": []
+    },
+    {
+      "content": "w-[calc(1 + 2)]",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": [
+        {
+          "type": "class",
+          "content": "w-[calc(1",
+          "start": 5,
+          "end": 14,
+          "themeKey": "w-[calc(1",
+          "rangeKey": "w-[calc(1",
+          "config": {
+            "color": "#445566"
+          }
+        }
+      ]
+    },
+    {
+      "content": "flex\fgrid",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": []
+    },
+    {
+      "content": "<div>flex",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": []
+    },
+    {
+      "content": "[]:flex",
+      "offset": 5,
+      "theme": {
+        "prefix": {
+          "hover": {
+            "color": "#112233"
+          },
+          "sm": {
+            "color": "#112233"
+          }
+        },
+        "base": {
+          "flex": {
+            "color": "#445566"
+          },
+          "w-*": {
+            "color": "#445566"
+          }
+        },
+        "arbitrary": {
+          "color": "#778899"
+        },
+        "important": {
+          "fontWeight": "bold"
+        }
+      },
+      "tokens": [
+        {
+          "type": "class",
+          "content": "[]:flex",
+          "start": 5,
+          "end": 8,
+          "themeKey": "arbitrary",
+          "rangeKey": "[]",
+          "config": {
+            "color": "#778899"
+          }
+        },
+        {
+          "type": "class",
+          "content": "[]:flex",
+          "start": 8,
+          "end": 12,
+          "themeKey": "flex",
+          "rangeKey": "flex",
+          "config": {
+            "color": "#445566"
+          }
+        }
+      ]
+    }
+  ]
+}
