@@ -11,6 +11,10 @@ The [structural completion report](../benchmarks/tokenizer-structure/README.md)
 records the class parser, theme resolver and template-discovery extraction.
 The [correctness report](../benchmarks/review-fixes/README.md) records the six
 review fixes, passing regressions and subsequent performance checks.
+The [Tailwind compatibility matrix](tailwind-compatibility.md) describes v3/v4
+important-modifier and grouped-value support, palette coverage and deferred
+features. Its [benchmark report](../benchmarks/tailwind-syntax/README.md) compares
+those parser changes with the review-fix stage.
 
 ## Verification
 
@@ -120,7 +124,8 @@ and theme resolution accept explicit data without editor or configuration servic
 | `document.ts`   | Scan quoted spans and comments, with a shared quoted-string reader and explicit incomplete-input boundaries. |
 | `context.ts`    | Require configured class syntax, tags or enclosing calls/collections; discover template attributes.          |
 | `directives.ts` | Discover CSS @apply regions outside comments, quoted literals and URL payloads.                              |
-| `classes.ts`    | Split class lists and variants with square-bracket tracking, size guards and themed fragment boundaries.     |
+| `classes.ts`    | Split class lists and resolve marker-free variants/utilities into exact themed source fragments.             |
+| `syntax.ts`     | Track protected brackets, parentheses, quotes/escapes and top-level variant/important boundaries.            |
 | `theme.ts`      | Resolve special, exact, normalized, grouped and wildcard rules with explicit priority.                       |
 | `ranges.ts`     | Normalize document offsets and accept ranges through an AVL interval index, retaining input priority.        |
 
@@ -136,8 +141,9 @@ other GitHub requests still require product-scope review. Malformed-input
 compatibility snapshots do not define desired highlighting. The historical
 context fixture records the pre-fix behavior; current eligibility and directive
 assertions live in the context and review tests instead. Incomplete quoted-input
-recovery, malformed brackets and the lone-important exception remain outside
-these six fixes.
+recovery and broader malformed-input semantics remain separate from these six
+fixes. The subsequent syntax-compatibility slice makes lone/repeated important
+markers safe and protects parenthesized values, including quoted delimiters.
 
 Context discovery uses at most 300 UTF-16 units of lookbehind, with a 100-unit
 attribute window. It tracks open configured calls and named collections rather
@@ -150,3 +156,4 @@ is `20261023-135603-d-ops-g47`. Context detection is tracked by
 `20261023-151112-d-ops-vg0`. Structural completion is tracked by
 `20261023-174844-d-ops-c9d`. The review-fix plan is
 `20261023-190546-d-ops-981`. Project records are managed through the CLI.
+Tailwind syntax compatibility is tracked by `20261024-092359-d-ops-1rg`.

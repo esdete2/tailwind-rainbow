@@ -1,3 +1,4 @@
+import { GroupState, readClassSyntax } from './syntax';
 import { lookupPrefix, resolveBaseClass, resolvePrefix } from './theme';
 import type { ClassToken } from './types';
 
@@ -20,180 +21,106 @@ export function parseClassContent(
       return classTokens;
     }
   }
-  // Whitespace ends words; bracket depth protects markup delimiters and variant colons.
-  let wordStart = -1;
-  let bracketDepth = 0;
-
-  for (let i = 0; i <= content.length; i++) {
-    const char = content[i];
-
-    if (char === '[') {
-      bracketDepth++;
-    } else if (char === ']') {
-      bracketDepth--;
-    }
-
-    const isWhitespace = !char || char === ' ' || char === '\t' || char === '\n' || char === '\r';
-    const isHtmlChar = char && bracketDepth === 0 && (char === '<' || char === '>' || char === '{' || char === '}');
-
-    if (!isWhitespace && !isHtmlChar && wordStart === -1) {
-      wordStart = i;
-    } else if ((isWhitespace || isHtmlChar) && wordStart !== -1) {
-      const word = content.slice(wordStart, i).trim();
-
-      if (word && word.length > 0) {
-        const partTokens = parseClass(word, startOffset + wordStart, activeTheme, ignoredModifiers);
-        classTokens.push(...partTokens);
-      }
-      wordStart = -1;
-
-      if (isHtmlChar) {
-        break;
+  // Raw whitespace separates class names even inside incomplete grouped input.
+  const words = /[^ \t\r\n]+/g;
+  let match;
+  while ((match = words.exec(content))) {
+    const raw = match[0];
+    let start = 0;
+    let end = raw.length;
+    let stop = false;
+    if (/[<>{}]/.test(raw)) {
+      const groups = new GroupState();
+      let wordStarted = false;
+      for (let i = 0; i < raw.length; i++) {
+        const char = raw[i];
+        const markup = !groups.advance(char) && (char === '<' || char === '>' || char === '{' || char === '}');
+        if (markup) {
+          if (wordStarted) {
+            end = i;
+            stop = true;
+            break;
+          }
+          start = i + 1;
+        } else wordStarted = true;
       }
     }
+    if (start < end) {
+      classTokens.push(
+        ...parseClass(raw.slice(start, end), startOffset + match.index + start, activeTheme, ignoredModifiers)
+      );
+    }
+    if (stop) break;
   }
 
   return classTokens;
 }
 
-/** Colons inside square brackets belong to selectors or arbitrary values. */
-function splitVariants(classString: string): string[] {
-  const parts: string[] = [];
-  let currentPart = '';
-  let bracketDepth = 0;
-
-  for (let i = 0; i < classString.length; i++) {
-    const char = classString[i];
-
-    if (char === '[') {
-      bracketDepth++;
-      currentPart += char;
-    } else if (char === ']') {
-      bracketDepth--;
-      currentPart += char;
-    } else if (char === ':' && bracketDepth === 0) {
-      parts.push(currentPart);
-      currentPart = '';
-    } else {
-      currentPart += char;
-    }
-  }
-
-  if (currentPart) {
-    parts.push(currentPart);
-  }
-
-  return parts;
-}
-
+/** Resolve source spans separately from marker-free utility and variant lookup. */
 function parseClass(
   classPart: string,
   startOffset: number,
   activeTheme: Theme,
   ignoredModifiers: readonly string[]
 ): ClassToken[] {
+  const syntax = readClassSyntax(classPart);
+  if (!syntax) return [];
+  const { parts, marker } = syntax;
+  const base = parts[parts.length - 1];
+  const baseStart = base.start + (marker === base.start ? 1 : 0);
+  const baseEnd = base.end - (marker === base.end - 1 ? 1 : 0);
+  if (baseStart >= baseEnd) return [];
+
   const tokens: ClassToken[] = [];
-  let currentPos = 0;
-  if (classPart.startsWith(':') || classPart.endsWith(':')) {
-    return tokens;
-  }
-  if (classPart.startsWith('!')) {
-    const afterImportant = classPart.slice(1);
-    if (afterImportant.startsWith(':') || afterImportant.endsWith(':')) {
-      return tokens;
-    }
-
+  const content = marker === undefined ? classPart : classPart.slice(0, marker) + classPart.slice(marker + 1);
+  if (marker !== undefined) {
     const config = lookupPrefix(activeTheme, 'important', ignoredModifiers);
-
     if (config && config.enabled !== false) {
       tokens.push({
         type: 'important',
         content: '!',
-        start: startOffset,
-        end: startOffset + 1,
+        start: startOffset + marker,
+        end: startOffset + marker + 1,
         themeKey: 'important',
         rangeKey: 'important',
-        config: config,
+        config,
       });
     }
-    currentPos = 1;
   }
 
-  const remainingClass = classPart.slice(currentPos);
-  const parts = splitVariants(remainingClass);
-
-  if (parts.length === 1) {
-    const baseClassResult = resolveBaseClass(activeTheme, remainingClass);
-    const baseClassConfig = baseClassResult.config;
-    const baseClassThemeKey = baseClassResult.themeKey;
-
-    if (baseClassConfig && baseClassConfig.enabled !== false) {
-      tokens.push({
-        type: 'class',
-        content: remainingClass,
-        start: startOffset + currentPos,
-        end: startOffset + classPart.length,
-        themeKey: baseClassThemeKey,
-        rangeKey: remainingClass,
-        config: baseClassConfig,
-      });
-    }
-  } else {
-    const prefixes = parts.slice(0, -1);
-    const baseClass = parts[parts.length - 1];
-
-    let currentPrefixStart = currentPos;
-
-    const baseClassResult = resolveBaseClass(activeTheme, baseClass);
-    const baseClassConfig = baseClassResult.config;
-    const baseClassThemeKey = baseClassResult.themeKey;
-
-    for (let i = 0; i < prefixes.length; i++) {
-      const prefix = prefixes[i];
-      const prefixResult = resolvePrefix(activeTheme, prefix, ignoredModifiers);
-      const prefixConfig = prefixResult.config;
-      const prefixThemeKey = prefixResult.themeKey;
-
-      if (prefixConfig && prefixConfig.enabled !== false) {
-        let prefixEnd: number;
-
-        if (i < prefixes.length - 1 || (baseClassConfig && baseClassConfig.enabled !== false)) {
-          prefixEnd = currentPrefixStart + prefix.length + 1;
-        } else {
-          // Without a base rule, the final styled prefix owns the remaining class text.
-          prefixEnd = classPart.length;
-        }
-
+  const emit = (start: number, end: number, rangeKey: string, themeKey: string, config: ClassConfig): void => {
+    const append = (from: number, to: number): void => {
+      if (from < to)
         tokens.push({
           type: 'class',
-          content: remainingClass,
-          start: startOffset + currentPrefixStart,
-          end: startOffset + prefixEnd,
-          themeKey: prefixThemeKey,
-          rangeKey: prefix,
-          config: prefixConfig,
+          content,
+          start: startOffset + from,
+          end: startOffset + to,
+          themeKey,
+          rangeKey,
+          config,
         });
-      }
-      currentPrefixStart += prefix.length + 1;
-    }
+    };
+    // A fallback can span the utility; leave the marker outside every class decoration.
+    if (marker !== undefined && marker >= start && marker < end) {
+      append(start, marker);
+      append(marker + 1, end);
+    } else append(start, end);
+  };
 
-    if (baseClassConfig && baseClassConfig.enabled !== false) {
-      let baseClassStart = currentPos;
-      for (const prefix of prefixes) {
-        baseClassStart += prefix.length + 1;
-      }
-
-      tokens.push({
-        type: 'class',
-        content: remainingClass,
-        start: startOffset + baseClassStart,
-        end: startOffset + classPart.length,
-        themeKey: baseClassThemeKey,
-        rangeKey: baseClass,
-        config: baseClassConfig,
-      });
+  const baseClass = classPart.slice(baseStart, baseEnd);
+  const baseResult = resolveBaseClass(activeTheme, baseClass);
+  const styledBase = baseResult.config && baseResult.config.enabled !== false;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i];
+    const start = part.start + (marker === part.start ? 1 : 0);
+    const prefix = classPart.slice(start, part.end);
+    const result = resolvePrefix(activeTheme, prefix, ignoredModifiers);
+    if (result.config && result.config.enabled !== false) {
+      const end = i < parts.length - 2 || styledBase ? part.end + 1 : baseEnd;
+      emit(start, end, prefix, result.themeKey, result.config);
     }
   }
-
+  if (styledBase && baseResult.config) emit(baseStart, baseEnd, baseClass, baseResult.themeKey, baseResult.config);
   return tokens;
 }

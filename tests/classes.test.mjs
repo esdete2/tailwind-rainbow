@@ -108,7 +108,9 @@ test('leading and trailing variant separators yield no fragments', () => {
 test('malformed class content retains its labeled compatibility outcomes', async () => {
   const fixture = JSON.parse(await readFile(new URL('./fixtures/classes-compatibility.json', import.meta.url), 'utf8'));
   for (const item of fixture.cases) {
-    if (item.error)
+    if (item.content === '!')
+      assert.deepEqual(parse(item.content, item.theme, item.offset), [], 'A marker requires a utility');
+    else if (item.error)
       assert.throws(() => parse(item.content, item.theme, item.offset), { name: item.error }, item.content);
     else assert.deepEqual(parse(item.content, item.theme, item.offset), item.tokens, item.content);
   }

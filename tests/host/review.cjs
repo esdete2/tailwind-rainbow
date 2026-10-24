@@ -25,7 +25,7 @@ exports.run = async () => {
       ['ordinary template', 'const message = `hover:hello-world`;', 'typescript', []],
       ['CSS block comment', '/* @apply hover:flex; */', 'css', []],
       ['SCSS line comment', '// @apply hover:flex;', 'scss', []],
-      ['important boundary', '<div class="!hover:flex"></div>', 'html', ['!', 'hover:flex']],
+      ['leading important compatibility', '<div class="!hover:flex"></div>', 'html', ['!', 'hover:flex']],
       ['utility collection', 'const value = cn([condition && "hover:flex"]);', 'typescript', ['hover:flex']],
     ]) {
       const document = await vscode.workspace.openTextDocument({ content, language });
@@ -35,6 +35,85 @@ exports.run = async () => {
         .sort((a, b) => document.offsetAt(a.start) - document.offsetAt(b.start))
         .map((range) => document.getText(range));
       assert.deepEqual(fragments, expected, name);
+      results.push(name);
+    }
+
+    const styledBase = { ...defaultTheme, base: { flex: {}, 'text-*': {} } };
+    for (const [name, value, theme, expected] of [
+      [
+        'v3 important placement',
+        'hover:!flex',
+        styledBase,
+        [
+          ['hover', 'hover:', 0, 6],
+          ['important', '!', 6, 7],
+          ['flex', 'flex', 7, 11],
+        ],
+      ],
+      [
+        'v4 important placement',
+        'hover:flex!',
+        styledBase,
+        [
+          ['hover', 'hover:', 0, 6],
+          ['flex', 'flex', 6, 10],
+          ['important', '!', 10, 11],
+        ],
+      ],
+      [
+        'v3 important fallback',
+        'hover:!flex',
+        defaultTheme,
+        [
+          ['hover', 'hover:', 0, 6],
+          ['important', '!', 6, 7],
+          ['hover', 'flex', 7, 11],
+        ],
+      ],
+      [
+        'v4 important fallback',
+        'hover:flex!',
+        defaultTheme,
+        [
+          ['hover', 'hover:flex', 0, 10],
+          ['important', '!', 10, 11],
+        ],
+      ],
+      [
+        'typed variable value',
+        'hover:text-(length:--size)!',
+        styledBase,
+        [
+          ['hover', 'hover:', 0, 6],
+          ['text-(length:--size)', 'text-(length:--size)', 6, 26],
+          ['important', '!', 26, 27],
+        ],
+      ],
+      [
+        'protected literal important',
+        '[content:"!"]!',
+        defaultTheme,
+        [
+          ['[content:"!"]', '[content:"!"]', 0, 13],
+          ['important', '!', 13, 14],
+        ],
+      ],
+    ]) {
+      const content = `😀\r\n<div class='${value}'></div>`;
+      const offset = content.indexOf(value);
+      const document = await vscode.workspace.openTextDocument({ content, language: 'html' });
+      const editor = await vscode.window.showTextDocument(document);
+      const actual = [...tokenizer.findClassRanges(editor, theme)]
+        .flatMap(([key, { ranges }]) =>
+          ranges.map((range) => [
+            key,
+            document.getText(range),
+            document.offsetAt(range.start) - offset,
+            document.offsetAt(range.end) - offset,
+          ])
+        )
+        .sort((a, b) => a[2] - b[2] || a[3] - b[3]);
+      assert.deepEqual(actual, expected, name);
       results.push(name);
     }
 
