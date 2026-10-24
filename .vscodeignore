@@ -12,6 +12,7 @@ vsc-extension-quickstart.md
 prototypes/**
 tests/**
 benchmarks/**
+benchmark/**
 .sdd/**
 .agents/**
 .codex/**
@@ -19,3 +20,8 @@ AGENTS.md
 CLAUDE.md
 docs/tokenizer-rebuild.md
 docs/tailwind-compatibility.md
+docs/toolchain.md
+.nvmrc
+out/test/**
+.github/**
+pnpm-lock.yaml

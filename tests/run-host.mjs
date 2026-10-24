@@ -13,7 +13,7 @@ await mkdir(dirname(output), { recursive: true });
 const profile = await mkdtemp(join(process.platform === 'darwin' ? '/tmp' : tmpdir(), 'trr-'));
 await runTests({
   vscodeExecutablePath: process.env.VSCODE_EXECUTABLE_PATH || undefined,
-  version: '1.96.0',
+  version: process.env.VSCODE_VERSION || '1.96.0',
   extensionDevelopmentPath: fileURLToPath(new URL('../', import.meta.url)),
   extensionTestsPath: fileURLToPath(new URL('./host/review.cjs', import.meta.url)),
   extensionTestsEnv: { RAINBOW_REVIEW_OUTPUT: output },

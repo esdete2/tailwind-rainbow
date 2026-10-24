@@ -306,7 +306,7 @@ const Component: React.FC<Props> = ({ className }) => (
       },
     };
 
-    const filename = `benchmark-${branch}-${timestamp}.json`;
+    const filename = `benchmark-${branch.replace(/[^A-Za-z0-9._-]/g, '-')}-${timestamp}.json`;
     const benchmarkDir = path.join(process.cwd(), 'benchmark');
 
     if (!fs.existsSync(benchmarkDir)) {
