@@ -2,7 +2,7 @@
   "name": "tailwind-rainbow",
   "displayName": "Tailwind Rainbow",
   "description": "Syntax highlighting for Tailwind CSS classes with customizable prefix-based coloring themes",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "publisher": "esdete",
   "keywords": [
     "tailwind",
@@ -100,7 +100,7 @@
         "tailwindRainbow.maxFileSize": {
           "type": "number",
           "default": 1000000,
-          "description": "Maximum file size in bytes to process (default: 1MB). Files larger than this will be skipped to prevent performance issues."
+          "description": "Maximum document length in UTF-16 code units (default: 1,000,000). Longer documents are skipped to limit processing cost."
         },
         "tailwindRainbow.theme": {
           "type": "string",
@@ -210,7 +210,7 @@
             "in",
             "not"
           ],
-          "description": "Prefix modifiers that should be ignored"
+          "description": "Ordered leading modifier patterns removed during theme lookup, such as group in group-hover. Entries are regular-expression fragments; exact theme rules take priority."
         },
         "tailwindRainbow.classIdentifiers": {
           "type": "array",
@@ -227,7 +227,7 @@
             "css",
             "style"
           ],
-          "description": "HTML/JSX attributes and variable patterns that indicate class content. Supports exact strings and regex patterns (prefix with 'regex:')."
+          "description": "Literal, case-insensitive names for class attributes, object properties and class-containing collections. Regular-expression identifiers are not supported."
         },
         "tailwindRainbow.classFunctions": {
           "type": "array",
@@ -252,7 +252,7 @@
             "theme",
             "variants"
           ],
-          "description": "Function names that typically contain class strings as arguments."
+          "description": "Case-sensitive function names whose open argument lists may contain class strings."
         },
         "tailwindRainbow.templatePatterns": {
           "type": "array",
@@ -266,7 +266,7 @@
             "css`",
             "styled"
           ],
-          "description": "Patterns to detect in template literals that indicate class content."
+          "description": "Case-sensitive template tag names, optionally ending in a backtick. A name also matches member tags, such as styled.div for styled."
         },
         "tailwindRainbow.contextPatterns": {
           "type": "array",
@@ -281,7 +281,7 @@
             "style",
             "@apply"
           ],
-          "description": "Keywords to look for in extended context to identify class-related code."
+          "description": "Case-sensitive names for arrays and objects whose values may contain class strings. These names do not authorize unrelated strings in nearby closed expressions."
         }
       }
     }

@@ -21,6 +21,7 @@ CLAUDE.md
 docs/tokenizer-rebuild.md
 docs/tailwind-compatibility.md
 docs/toolchain.md
+docs/releases/**
 .nvmrc
 out/test/**
 .github/**
