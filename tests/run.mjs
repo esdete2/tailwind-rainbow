@@ -5,7 +5,8 @@ const result = spawnSync(
   process.execPath,
   [
     '--import',
-    fileURLToPath(new URL('./support/register.mjs', import.meta.url)),
+    // ESM preloads need file URLs for Windows drive-letter paths.
+    new URL('./support/register.mjs', import.meta.url).href,
     '--test',
     fileURLToPath(new URL('./tokenizer.test.mjs', import.meta.url)),
     fileURLToPath(new URL('./document.test.mjs', import.meta.url)),
