@@ -1,0 +1,92 @@
+{
+  "sourceCommit": "c9cae80217b8fd8378bf731739d82cd546a5b7d4",
+  "purpose": "Lexical compatibility snapshots, not desired highlighting assertions. Incomplete quoted spans reserve a closing-delimiter position at EOF, dropping the final code unit; a lone opener can yield end before start. Correctness changes require separate review.",
+  "incomplete": [
+    {
+      "source": "class=\"hover:flex",
+      "tokens": [
+        {
+          "type": "string",
+          "content": "hover:fle",
+          "start": 7,
+          "end": 16,
+          "quote": "\""
+        }
+      ]
+    },
+    {
+      "source": "class=\"",
+      "tokens": [
+        {
+          "type": "string",
+          "content": "",
+          "start": 7,
+          "end": 6,
+          "quote": "\""
+        }
+      ]
+    },
+    {
+      "source": "`",
+      "tokens": [
+        {
+          "type": "template",
+          "content": "",
+          "start": 1,
+          "end": 0,
+          "quote": "`"
+        }
+      ]
+    },
+    {
+      "source": "class=\"x\\",
+      "tokens": [
+        {
+          "type": "string",
+          "content": "x",
+          "start": 7,
+          "end": 8,
+          "quote": "\""
+        }
+      ]
+    }
+  ],
+  "corpora": [
+    {
+      "name": "html-small",
+      "sourceSha256": "204e2ddac5f23606c781c9c7d1970e9a9c2c9d845c4d71eb39a5bf8b4f5601a0",
+      "tokenCount": 81,
+      "tokensSha256": "0d0bac2bf24f046ebd5d9514aea1e6e80463acbce7a92553696bca229724dc5a"
+    },
+    {
+      "name": "html-medium",
+      "sourceSha256": "7d5d5d3a4aec84fb47c967c1551f80defd4217b46a28f52295718079d24f2144",
+      "tokenCount": 819,
+      "tokensSha256": "c2808a9f26d88a31513d9ef8e859ee8aaf691d925a769d6253fe13c814af55ca"
+    },
+    {
+      "name": "tsx-medium",
+      "sourceSha256": "e5dbe6032d882ddf240c2665db4c4c1e537c54a56861598be636b1decdc67d20",
+      "tokenCount": 699,
+      "tokensSha256": "23406d75ba6598ed514b95be860574b33113e7e04ac07dc8549211006d081fee"
+    },
+    {
+      "name": "css-medium",
+      "sourceSha256": "921bd4e72f27c3058cc7f7a2ee489d4b4b1accaa7d924fafb887b1f322608668",
+      "tokenCount": 877,
+      "tokensSha256": "2fdcabf09c27d6611b171b8e74959ddf9de537d6673aa814d1a87c09fb87c121"
+    },
+    {
+      "name": "html-large",
+      "sourceSha256": "89bac3bdda7d102e9a1a17fd2b1dfdb92a94ca0b1cafebd37d8d78b21fe30152",
+      "tokenCount": 7786,
+      "tokensSha256": "14e6c6f4c270f1950db5c0d4188341d66951fdc28b7394b3dc9a3e1823969655"
+    },
+    {
+      "name": "repeated-variants",
+      "sourceSha256": "5d71c4a7c9cb7e17439373db053f4f7c7e5034a181c2ec3e88bbdff54bf9dc66",
+      "tokenCount": 434,
+      "tokensSha256": "fa84072333a54793f48ddd0e820f6c790293ed8b2a5d93346cc1b6d71cbfa268"
+    }
+  ]
+}

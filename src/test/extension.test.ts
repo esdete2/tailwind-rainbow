@@ -474,7 +474,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
     ]);
   });
 
-  it('should detect prefixes in variable assignments', async function () {
+  it('variable name suffixes do not authorize class strings', async function () {
     const content = `
       const tableClasses = "sm:border-2 lg:shadow-lg";
       const buttonStyles = 'hover:bg-blue-500 focus:outline-none';
@@ -485,22 +485,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
 
     const tokenRanges = getTokenRanges();
 
-    assert.ok(tokenRanges.has('sm'));
-    assert.ok(tokenRanges.has('lg'));
-    assert.ok(tokenRanges.has('hover'));
-    assert.ok(tokenRanges.has('focus'));
-    assert.ok(tokenRanges.has('md'));
-    assert.ok(tokenRanges.has('xl'));
-    assert.strictEqual(tokenRanges.size, 6);
-
-    verifyRanges(content, tokenRanges, [
-      'sm:border-2',
-      'lg:shadow-lg',
-      'hover:bg-blue-500',
-      'focus:outline-none',
-      'md:rounded-lg',
-      'xl:max-w-md',
-    ]);
+    assert.strictEqual(tokenRanges.size, 0);
   });
 
   it('should detect prefixes in CVA (Class Variance Authority) patterns', async function () {
@@ -550,7 +535,7 @@ suite('Tailwind Class Coloring Test Suite', () => {
     ]);
   });
 
-  it('should detect prefixes in more utility function patterns', async function () {
+  it('configured calls and template tags select class strings', async function () {
     const content = `
       const styles = twMerge("sm:p-4", "lg:p-8");
       const classes = tw\`md:flex xl:block\`;
@@ -569,18 +554,10 @@ suite('Tailwind Class Coloring Test Suite', () => {
     assert.ok(tokenRanges.has('lg'));
     assert.ok(tokenRanges.has('md'));
     assert.ok(tokenRanges.has('xl'));
-    assert.ok(tokenRanges.has('hover'));
-    assert.strictEqual(tokenRanges.size, 5);
+    assert.ok(!tokenRanges.has('hover'));
+    assert.strictEqual(tokenRanges.size, 4);
 
-    verifyRanges(content, tokenRanges, [
-      'sm:p-4',
-      'lg:p-8',
-      'md:flex',
-      'xl:block',
-      'sm:text-sm',
-      'lg:text-lg',
-      'hover:opacity-75',
-    ]);
+    verifyRanges(content, tokenRanges, ['sm:p-4', 'lg:p-8', 'md:flex', 'xl:block', 'sm:text-sm', 'lg:text-lg']);
   });
 
   it('should detect base class patterns like bg-*, text-*, etc.', async function () {

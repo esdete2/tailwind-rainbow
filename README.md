@@ -3,7 +3,7 @@
 A VS Code extension that provides syntax highlighting for Tailwind CSS classes with customizable coloring themes.
 
 <p align="center">
-  <img src="https://github.com/esdete2/tailwind-rainbow/blob/main/images/example.png?raw=true">
+  <img src="https://github.com/esdete2/tailwind-rainbow/blob/main/images/example.png?raw=true" alt="Tailwind Rainbow class highlighting in VS Code">
 </p>
 
 ## Features
@@ -13,6 +13,7 @@ A VS Code extension that provides syntax highlighting for Tailwind CSS classes w
 - 🟠 **Optional base class support**: Highlights base classes with wildcard patterns (`bg-*`, `text-*`, etc.)
 - 🟡 **Smart detection**: Works in HTML, JSX, template literals, CSS @apply directives, and more
 - 🟢 **Fully configurable**: Customize patterns, functions, and detection logic
+- 🔴 **Important classes**: Highlights the `!` in both `!flex` and `flex!`
 
 ### Class Structure Analysis
 
@@ -65,7 +66,7 @@ lg:min-w-[1920px]
 
 ### Wildcard Pattern Matching
 
-The extension supports wildcard patterns using the `*` character:
+Use the first part of a class name followed by `-*`, such as `bg-*` or `min-*`:
 
 #### Prefix Wildcards
 
@@ -84,7 +85,7 @@ The extension supports wildcard patterns using the `*` character:
 [aspect-ratio:1/8]     → arbitrary color
 
 /* Arbitrary prefixes */
-[&.show]:display-block → arbitrary color
+[&.show]:block        → arbitrary color
 ```
 
 ### Configuration Priority
@@ -93,17 +94,17 @@ The extension follows a specific lookup order for maximum flexibility:
 
 **For Prefixes:**
 
-1. Exact match in prefix section
-2. Match without ignored modifiers (e.g., `group-hover` → `hover`)
-3. Match without group name (e.g., `hover/opacity-50` → `hover`)
-4. Wildcard pattern match in prefix section
-5. Arbitrary color (for bracket-enclosed prefixes)
+1. Arbitrary color (for bracket-enclosed prefixes)
+2. Exact match in prefix section
+3. Match without ignored modifiers (e.g., `group-hover` → `hover`)
+4. Match without group name (e.g., `hover/button` → `hover`)
+5. Wildcard pattern match in prefix section
 
 **For Base Classes:**
 
-1. Exact match in base section
-2. Wildcard pattern match in base section
-3. Arbitrary color (for bracket-enclosed classes)
+1. Arbitrary color (for bracket-enclosed classes)
+2. Exact match in base section
+3. Wildcard pattern match in base section
 
 ## Supported File Types
 
@@ -115,9 +116,13 @@ The extension follows a specific lookup order for maximum flexibility:
 
 ## Installation
 
-1. Install from the VS Code marketplace
-2. Open a file with Tailwind CSS classes
-3. Classes will be automatically highlighted based on their prefixes
+Requires **VS Code 1.96 or newer**.
+
+1. Open **Extensions** in VS Code (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+2. Search for **Tailwind Rainbow** by **esdete** and click **Install**, or use the [Marketplace page](https://marketplace.visualstudio.com/items?itemName=esdete.tailwind-rainbow)
+3. Open a file with Tailwind CSS classes; highlighting starts automatically
+
+If you have a downloaded `.vsix` file, open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`), run **Extensions: Install from VSIX…** and select the file. Reload VS Code if prompted.
 
 ## Configuration
 
@@ -148,7 +153,8 @@ Configure which file types to process:
     "sass",
     "less",
     "stylus",
-    "postcss"
+    "postcss",
+    "tailwindcss"
   ]
 }
 ```
@@ -172,7 +178,7 @@ Create or override themes with the following structure:
         "text-*": { "color": "#6600ff" },
         "p-*": { "color": "#00ffff" }
       },
-      "arbitrary": { "color": "#ff00ff", "fontWeight": "italic" },
+      "arbitrary": { "color": "#ff00ff", "fontWeight": "bold" },
       "important": { "color": "#ff0000", "fontWeight": "bold" }
     }
   },
@@ -186,20 +192,13 @@ Create or override themes with the following structure:
 
 Customize how classes are detected in different contexts:
 
+These lists replace the defaults, so include any existing names you want to keep. Highlighting applies to class attributes, configured helper functions and tagged templates; ordinary strings are left unchanged.
+
 ```json
 {
-  "tailwindRainbow.classIdentifiers": [
-    "class",
-    "className",
-    "class:",
-    "className:",
-    "classlist",
-    "classes",
-    "css",
-    "style"
-  ],
+  "tailwindRainbow.classIdentifiers": ["class", "className", "class:", "className:", "classlist", "classes", "css", "style"],
   "tailwindRainbow.classFunctions": ["cn", "clsx", "cva", "classNames", "classList", "twMerge", "tw", "styled", "css"],
-  "tailwindRainbow.templatePatterns": ["class", "${", "tw`", "css`", "styled"],
+  "tailwindRainbow.templatePatterns": ["class", "tw`", "css`", "styled"],
   "tailwindRainbow.contextPatterns": ["variants", "cva", "class", "css", "style", "@apply"]
 }
 ```

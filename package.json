@@ -2,7 +2,7 @@
   "name": "tailwind-rainbow",
   "displayName": "Tailwind Rainbow",
   "description": "Syntax highlighting for Tailwind CSS classes with customizable prefix-based coloring themes",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "publisher": "esdete",
   "keywords": [
     "tailwind",
@@ -32,34 +32,37 @@
     "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "pnpm run build",
     "lint": "eslint src",
-    "test": "rm -rf .vscode-test/user-data && rm -rf .vscode-test/extensions && node ./out/test/runTest.js",
+    "test:unit": "pnpm run compile && node tests/run.mjs",
+    "test:regressions": "pnpm run compile && node tests/run.mjs --strict",
+    "test:host": "pnpm run compile && node tests/run-host.mjs",
+    "bench:tokenizer": "pnpm run compile && node tests/benchmark/run.mjs",
+    "bench:tokenizer:host": "pnpm run compile && node tests/benchmark/run.mjs --host",
+    "bench:compare": "node tests/benchmark/compare.mjs",
+    "test": "pnpm run test:regressions",
     "build": "vsce package --no-dependencies -o tailwind-rainbow.vsix",
-    "build:install": "pnpm run build && code --install-extension tailwind-rainbow.vsix"
+    "build:install": "pnpm run build && code --install-extension tailwind-rainbow.vsix",
+    "test:legacy": "pnpm run compile && node ./out/test/runTest.js",
+    "format:check": "prettier --check src tests package.json tsconfig.json eslint.config.mjs .github/workflows/test.yml"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.2.0",
-    "@types/glob": "^8.1.0",
+    "@eslint/eslintrc": "^3.3.7",
     "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.96.0",
-    "@typescript-eslint/eslint-plugin": "^8.23.0",
-    "@typescript-eslint/parser": "^8.23.0",
-    "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^3.2.2",
-    "eslint": "^9.20.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-simple-import-sort": "^12.1.1",
-    "eslint-plugin-unused-imports": "^4.1.4",
-    "glob": "^11.0.1",
-    "jest": "^29.7.0",
-    "mocha": "^11.1.0",
-    "path": "^0.12.7",
-    "prettier": "^3.5.0",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.7.2"
+    "@types/node": "^20.19.43",
+    "@types/vscode": "1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.0",
+    "@typescript-eslint/parser": "^8.72.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.7",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "glob": "^13.0.6",
+    "mocha": "^11.8.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3"
   },
   "engines": {
     "vscode": "^1.96.0"
@@ -97,7 +100,7 @@
         "tailwindRainbow.maxFileSize": {
           "type": "number",
           "default": 1000000,
-          "description": "Maximum file size in bytes to process (default: 1MB). Files larger than this will be skipped to prevent performance issues."
+          "description": "Maximum document length in UTF-16 code units (default: 1,000,000). Longer documents are skipped to limit processing cost."
         },
         "tailwindRainbow.theme": {
           "type": "string",
@@ -207,7 +210,7 @@
             "in",
             "not"
           ],
-          "description": "Prefix modifiers that should be ignored"
+          "description": "Ordered leading modifier patterns removed during theme lookup, such as group in group-hover. Entries are regular-expression fragments; exact theme rules take priority."
         },
         "tailwindRainbow.classIdentifiers": {
           "type": "array",
@@ -224,7 +227,7 @@
             "css",
             "style"
           ],
-          "description": "HTML/JSX attributes and variable patterns that indicate class content. Supports exact strings and regex patterns (prefix with 'regex:')."
+          "description": "Literal, case-insensitive names for class attributes, object properties and class-containing collections. Regular-expression identifiers are not supported."
         },
         "tailwindRainbow.classFunctions": {
           "type": "array",
@@ -249,7 +252,7 @@
             "theme",
             "variants"
           ],
-          "description": "Function names that typically contain class strings as arguments."
+          "description": "Case-sensitive function names whose open argument lists may contain class strings."
         },
         "tailwindRainbow.templatePatterns": {
           "type": "array",
@@ -263,7 +266,7 @@
             "css`",
             "styled"
           ],
-          "description": "Patterns to detect in template literals that indicate class content."
+          "description": "Case-sensitive template tag names, optionally ending in a backtick. A name also matches member tags, such as styled.div for styled."
         },
         "tailwindRainbow.contextPatterns": {
           "type": "array",
@@ -278,9 +281,15 @@
             "style",
             "@apply"
           ],
-          "description": "Keywords to look for in extended context to identify class-related code."
+          "description": "Case-sensitive names for arrays and objects whose values may contain class strings. These names do not authorize unrelated strings in nearby closed expressions."
         }
       }
     }
+  },
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@vscode/vsce-sign"
+    ]
   }
 }

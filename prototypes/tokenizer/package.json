@@ -1,0 +1,12 @@
+{
+  "name": "tailwind-rainbow-tokenizer-prototype",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test": "node test.mjs",
+    "bench": "node benchmark.mjs"
+  }
+}

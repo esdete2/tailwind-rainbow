@@ -1,0 +1,40 @@
+# SDD configuration
+# See https://github.com/networkteam/sdd for documentation.
+
+# Graph directory relative to repository root.
+graph_dir: .sdd/graph
+# Concrete branch for ordinary engine captures. Implementation runs carry
+# explicit base/work branches instead; cwd never selects mutation authority.
+default_branch: main
+# Canonical repo identity for cross-repo references — URL-shaped
+# (host/path), auto-derived from the git remote by `sdd init` and
+# identical for every user. Other graphs reference entries here as
+# <repo_id>:<entry-id>. Empty means local-only (no remote identity).
+repo_id: github.com/esdete2/tailwind-rainbow
+# Graph language — locale code for the language captured entries are
+# authored in. Empty means English (default). The /sdd skill reads the
+# matching references/vocabulary-<locale>.md when rendering to users.
+language: en
+# Skill installation scope — where `sdd init` extracts the agent skill
+# bundle. `user` installs into the user-global directory (e.g.
+# ~/.claude/skills/); `project` installs into the repo-local
+# .claude/skills/ tree. Recorded on first run so subsequent runs (and
+# clones) reinstall to the same place without re-prompting.
+skill_scope: project
+# Agent targets `sdd init` renders skills for. Each listed agent gets its
+# own rendered, committed skill dir (claude → .claude/skills/, codex →
+# .agents/skills/). Chosen via multi-select on first run; every contributor
+# on the repo renders the same set.
+supported_agents: [codex]
+
+# LLM provider settings (defaults shown — override here or in config.local.yaml).
+# llm:
+#   provider: claude-cli
+#   model: claude-sonnet-4-6
+#   timeout: 2m
+#   concurrency: 4
+
+# Background sync — controls how often the CLI auto-fetches to detect graph
+# changes from collaborators. Go duration string.
+# sync:
+#   cooldown: 15m

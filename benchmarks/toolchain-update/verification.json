@@ -1,0 +1,75 @@
+{
+  "recordedAt": "2026-10-24T17:33:06.760633+00:00",
+  "runtime": {
+    "developmentNode": "v24.22.1",
+    "pnpm": "10.33.0"
+  },
+  "checks": {
+    "frozenLockfileAndStrictPeers": "passed",
+    "compile": "passed",
+    "lint": "passed with zero warnings",
+    "format": "passed",
+    "sddLint": "passed",
+    "strict": {
+      "passed": 142,
+      "failed": 0,
+      "todo": 0
+    },
+    "host": {
+      "1.96.0": 16,
+      "1.142.0": 16
+    },
+    "legacyMocha": {
+      "1.96.0": 47,
+      "1.142.0": 47
+    },
+    "productionSourceUnchanged": true,
+    "productionJavaScriptUnchanged": true,
+    "productionJavaScriptFiles": 19,
+    "sixLexicalFingerprints": "passed in strict suite",
+    "sixHighlightingFingerprints": "unchanged",
+    "priorReportsAndHarnessesUnchanged": true
+  },
+  "vsix": {
+    "path": "tailwind-rainbow.vsix",
+    "sha256": "c42fec60dd20cfd6f076f0fc51a9b046e4bf53c22eea0a7ddacf31cc130c318f",
+    "bytes": 211746,
+    "entries": [
+      "[Content_Types].xml",
+      "extension.vsixmanifest",
+      "extension/LICENSE.txt",
+      "extension/changelog.md",
+      "extension/example.html",
+      "extension/images/example.png",
+      "extension/images/icon.png",
+      "extension/out/extension.js",
+      "extension/out/services/config.js",
+      "extension/out/services/decoration.js",
+      "extension/out/services/extension.js",
+      "extension/out/services/output.js",
+      "extension/out/services/theme.js",
+      "extension/out/services/tokenizer.js",
+      "extension/out/services/tokenizer/classes.js",
+      "extension/out/services/tokenizer/context.js",
+      "extension/out/services/tokenizer/directives.js",
+      "extension/out/services/tokenizer/document.js",
+      "extension/out/services/tokenizer/ranges.js",
+      "extension/out/services/tokenizer/syntax.js",
+      "extension/out/services/tokenizer/theme.js",
+      "extension/out/services/tokenizer/types.js",
+      "extension/out/services/utils.js",
+      "extension/out/themes/default.js",
+      "extension/out/themes/index.js",
+      "extension/out/themes/synthwave.js",
+      "extension/package.json",
+      "extension/readme.md"
+    ]
+  },
+  "limits": [
+    "Hosted CI not executed; Linux and Windows results not claimed.",
+    "Actual host checks inspect ranges and use decoration APIs, without pixel inspection.",
+    "Performance measured in installed VS Code 1.142.0; minimum-editor performance not measured.",
+    "Mocha 11.8.0 retained for minimum editor runtime; its transitive Glob 10.5.0 is deprecated.",
+    "Node 25 packaging not verified with the updated toolchain."
+  ]
+}

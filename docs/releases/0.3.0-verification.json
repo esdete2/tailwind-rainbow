@@ -1,0 +1,92 @@
+{
+  "recordedAt": "2026-10-24T18:20:39.382907+00:00",
+  "status": "local unreleased candidate",
+  "plan": "20261024-201053-d-ops-vgp",
+  "runtime": {
+    "node": "v24.22.1",
+    "pnpm": "10.33.0"
+  },
+  "candidate": {
+    "path": "tailwind-rainbow-0.3.0.vsix",
+    "version": "0.3.0",
+    "sha256": "d01d42f75577f99d09cbb8242c71b1c9cfda368aa6ea8966237b9f9e55f2a610",
+    "bytes": 214309,
+    "entries": [
+      "[Content_Types].xml",
+      "extension.vsixmanifest",
+      "extension/LICENSE.txt",
+      "extension/changelog.md",
+      "extension/example.html",
+      "extension/images/example.png",
+      "extension/images/icon.png",
+      "extension/out/extension.js",
+      "extension/out/services/config.js",
+      "extension/out/services/decoration.js",
+      "extension/out/services/extension.js",
+      "extension/out/services/output.js",
+      "extension/out/services/theme.js",
+      "extension/out/services/tokenizer.js",
+      "extension/out/services/tokenizer/classes.js",
+      "extension/out/services/tokenizer/context.js",
+      "extension/out/services/tokenizer/directives.js",
+      "extension/out/services/tokenizer/document.js",
+      "extension/out/services/tokenizer/ranges.js",
+      "extension/out/services/tokenizer/syntax.js",
+      "extension/out/services/tokenizer/theme.js",
+      "extension/out/services/tokenizer/types.js",
+      "extension/out/services/utils.js",
+      "extension/out/themes/default.js",
+      "extension/out/themes/index.js",
+      "extension/out/themes/synthwave.js",
+      "extension/package.json",
+      "extension/readme.md"
+    ],
+    "packagedReadmeSha256": "1f017f989b5f794d95d80f8cf76f9b0deee2a43883b0f6efeb9b75813db81c9e",
+    "packagedChangelogSha256": "fb7e486832a22ad141cd99b78c8e9d4d27a8ce1ae88b8c8eb7940ccf4f6975f1"
+  },
+  "preservedTestedCandidate": {
+    "path": "tailwind-rainbow.vsix",
+    "version": "0.2.1",
+    "sha256": "c42fec60dd20cfd6f076f0fc51a9b046e4bf53c22eea0a7ddacf31cc130c318f"
+  },
+  "checks": {
+    "strict": {
+      "passed": 142,
+      "failed": 0,
+      "todo": 0
+    },
+    "compile": "passed",
+    "lint": "passed with zero warnings",
+    "format": "passed",
+    "documentation": {
+      "markdownFences": 7,
+      "jsonSettingsExamples": 2,
+      "productionJavaScriptFilesUnchanged": 19,
+      "checks": [
+        "exact rendered fragments for both HTML examples",
+        "custom-theme utility colors and variant/base separation",
+        "disabled important markers excluded from class decorations",
+        "exact TSX and CSS fragments",
+        "ordinary string/template and unconfigured member-call exclusions",
+        "TypeScript/TSX syntax",
+        "configuration keys, types, colors and font weights",
+        "only approved version and description metadata changes",
+        "local README links",
+        "historical changelog content",
+        "production source and emitted JavaScript fingerprints",
+        "prior benchmark reports and harnesses unchanged"
+      ]
+    },
+    "productionSourceUnchanged": true,
+    "productionJavaScriptUnchanged": true,
+    "metadataChanges": "version and six descriptions only; defaults, API minimum and dependencies unchanged",
+    "priorBenchmarkReportsAndHarnessesUnchanged": true,
+    "sddLint": "passed"
+  },
+  "limits": [
+    "No fresh editor-host or performance run: production source and emitted JavaScript are unchanged.",
+    "The toolchain stage records 16 host checks and 47 legacy tests passing on both VS Code 1.96.0 and 1.142.0; those are prior-candidate results.",
+    "Philip reported the 0.2.1 package works; the 0.3.0 candidate has not yet received a new manual check.",
+    "No push, merge, tag, release, publication or normal-profile installation was performed."
+  ]
+}

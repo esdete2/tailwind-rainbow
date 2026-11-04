@@ -1,0 +1,127 @@
+[
+  {
+    "name": "stacked variants and utility",
+    "text": "sm:hover:px-4 flex",
+    "tokens": [
+      ["variant", "sm:"],
+      ["variant", "hover:"],
+      ["utility", "px-4"],
+      ["utility", "flex"]
+    ]
+  },
+  {
+    "name": "important modifiers",
+    "text": "!sm:hover:p-2 hover:!text-red-500 font-bold! !",
+    "tokens": [
+      ["important", "!"],
+      ["variant", "sm:"],
+      ["variant", "hover:"],
+      ["utility", "p-2"],
+      ["variant", "hover:"],
+      ["important", "!"],
+      ["utility", "text-red-500"],
+      ["utility", "font-bold"],
+      ["important", "!"],
+      ["important", "!"]
+    ]
+  },
+  {
+    "name": "arbitrary selectors, values and properties",
+    "text": "[&:nth-child(2)]:before:w-[calc(100%_+_4px)] [aspect-ratio:1/8] bg-[url('a:b')]",
+    "tokens": [
+      ["variant", "[&:nth-child(2)]:"],
+      ["variant", "before:"],
+      ["utility", "w-"],
+      ["arbitrary", "[calc(100%_+_4px)]"],
+      ["arbitrary", "[aspect-ratio:1/8]"],
+      ["utility", "bg-"],
+      ["arbitrary", "[url('a:b')]"]
+    ]
+  },
+  {
+    "name": "quotes, whitespace and closing brackets in values",
+    "text": "before:content-['a ] b']\tafter:content-[\"x:y\"]\r\nblock",
+    "tokens": [
+      ["variant", "before:"],
+      ["utility", "content-"],
+      ["arbitrary", "['a ] b']"],
+      ["variant", "after:"],
+      ["utility", "content-"],
+      ["arbitrary", "[\"x:y\"]"],
+      ["utility", "block"]
+    ]
+  },
+  {
+    "name": "nested brackets and escapes",
+    "text": "[&[data-x='a:b']]:grid before:content-['it\\'s'] foo\\:bar",
+    "tokens": [
+      ["variant", "[&[data-x='a:b']]:"],
+      ["utility", "grid"],
+      ["variant", "before:"],
+      ["utility", "content-"],
+      ["arbitrary", "['it\\'s']"],
+      ["utility", "foo\\:bar"]
+    ]
+  },
+  {
+    "name": "container queries, named groups and CSS variables",
+    "text": "@max-sm/card:group-hover/item:-mt-2 text-(length:--size) tw:font-bold!",
+    "tokens": [
+      ["variant", "@max-sm/card:"],
+      ["variant", "group-hover/item:"],
+      ["utility", "-mt-2"],
+      ["utility", "text-(length:--size)"],
+      ["variant", "tw:"],
+      ["utility", "font-bold"],
+      ["important", "!"]
+    ]
+  },
+  {
+    "name": "UTF-16 offsets with supplementary characters",
+    "text": "before:content-['😀'] hover:text-red-500",
+    "prefix": "😀 日本語 <div class=\"",
+    "tokens": [
+      ["variant", "before:"],
+      ["utility", "content-"],
+      ["arbitrary", "['😀']"],
+      ["variant", "hover:"],
+      ["utility", "text-red-500"]
+    ]
+  },
+  {
+    "name": "incomplete classes during typing",
+    "text": "hover: sm:w-[calc(100%",
+    "tokens": [
+      ["variant", "hover:"],
+      ["variant", "sm:"],
+      ["utility", "w-"],
+      ["arbitrary", "[calc(100%"]
+    ]
+  },
+  {
+    "name": "escaped punctuation and region boundary recovery",
+    "text": "hover:! foo\\! bar\\\\! trailing\\",
+    "tokens": [
+      ["variant", "hover:"],
+      ["important", "!"],
+      ["utility", "foo\\!"],
+      ["utility", "bar\\\\"],
+      ["important", "!"],
+      ["utility", "trailing\\"]
+    ]
+  },
+  {
+    "name": "important punctuation inside incomplete arbitrary value",
+    "text": "hover:w-[value!",
+    "tokens": [
+      ["variant", "hover:"],
+      ["utility", "w-"],
+      ["arbitrary", "[value!"]
+    ]
+  },
+  {
+    "name": "empty class list",
+    "text": " \t\n",
+    "tokens": []
+  }
+]

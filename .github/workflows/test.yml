@@ -1,4 +1,7 @@
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -6,25 +9,41 @@ on:
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        vscode: ['1.96.0', stable]
     runs-on: ${{ matrix.os }}
+    env:
+      VSCODE_VERSION: ${{ matrix.vscode }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 18.x
+          node-version-file: .nvmrc
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
+        uses: pnpm/action-setup@v6
       - name: Install dependencies
-        run: pnpm install
-      - name: Run Extension Tests
-        run: xvfb-run -a pnpm test
-        if: runner.os == 'Linux'
-      - name: Run Extension Tests
+        run: pnpm install --frozen-lockfile --strict-peer-dependencies
+      - name: Check lint
+        run: pnpm run lint
+      - name: Check formatting
+        run: pnpm run format:check
+      - name: Run strict tests
         run: pnpm test
+      - name: Run editor checks
+        run: xvfb-run -a pnpm run test:host
+        if: runner.os == 'Linux'
+      - name: Run editor checks
+        run: pnpm run test:host
         if: runner.os != 'Linux'
+      - name: Run legacy editor tests
+        run: xvfb-run -a pnpm run test:legacy
+        if: runner.os == 'Linux'
+      - name: Run legacy editor tests
+        run: pnpm run test:legacy
+        if: runner.os != 'Linux'
+      - name: Build VSIX
+        run: pnpm run build

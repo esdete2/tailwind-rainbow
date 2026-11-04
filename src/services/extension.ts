@@ -63,18 +63,19 @@ export class ExtensionService {
    * @param immediate Whether to bypass debouncing (default: false)
    */
   private updateDecorations(editor: vscode.TextEditor, immediate: boolean = false) {
-    if (
-      !editor ||
-      editor.document.uri.scheme === 'output' ||
-      editor.document.uri.scheme === 'debug' ||
-      editor.document.isUntitled
-    ) {
+    if (!editor || editor.document.uri.scheme === 'output' || editor.document.uri.scheme === 'debug') {
       return;
     }
 
     // Clear any pending update
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
+      this.updateTimeout = undefined;
+    }
+
+    if (!vscode.workspace.getConfiguration('tailwindRainbow').get<boolean>('enabled', true)) {
+      this.decorationService.clearDecorations();
+      return;
     }
 
     // Debounce update with concurrency protection
@@ -88,6 +89,10 @@ export class ExtensionService {
 
       try {
         const config = vscode.workspace.getConfiguration('tailwindRainbow');
+        if (!config.get<boolean>('enabled', true)) {
+          this.decorationService.clearDecorations();
+          return;
+        }
         const supportedLanguages = config.get<string[]>('languages') ?? [];
         const languageId = editor.document.languageId;
 
