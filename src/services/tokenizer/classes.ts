@@ -1,3 +1,4 @@
+import { type CollectionMatcher, defaultCollections } from './collections';
 import { GroupState, readClassSyntax } from './syntax';
 import { lookupPrefix, resolveBaseClass, resolvePrefix } from './theme';
 import type { ClassToken } from './types';
@@ -5,19 +6,30 @@ import type { ClassToken } from './types';
 const MAX_CONTENT_LENGTH = 5_000;
 const CONTENT_VALIDATION_THRESHOLD = 100;
 
+interface ClassOptions {
+  mode?: HighlightMode;
+  collections?: CollectionMatcher;
+}
+
 /** Parse themed fragments with document-relative UTF-16 offsets and explicit modifier settings. */
 export function parseClassContent(
   content: string,
   startOffset: number,
   activeTheme: Theme,
-  ignoredModifiers: readonly string[]
+  ignoredModifiers: readonly string[],
+  options: ClassOptions = {}
 ): ClassToken[] {
   const classTokens: ClassToken[] = [];
   if (content.length > MAX_CONTENT_LENGTH) {
     return classTokens;
   }
   if (!content.includes(':')) {
-    if (content.length > CONTENT_VALIDATION_THRESHOLD && !content.includes('-') && !content.includes('[')) {
+    if (
+      content.length > CONTENT_VALIDATION_THRESHOLD &&
+      !content.includes('-') &&
+      !content.includes('[') &&
+      !Object.keys(activeTheme.collections ?? {}).length
+    ) {
       return classTokens;
     }
   }
@@ -47,7 +59,7 @@ export function parseClassContent(
     }
     if (start < end) {
       classTokens.push(
-        ...parseClass(raw.slice(start, end), startOffset + match.index + start, activeTheme, ignoredModifiers)
+        ...parseClass(raw.slice(start, end), startOffset + match.index + start, activeTheme, ignoredModifiers, options)
       );
     }
     if (stop) break;
@@ -61,7 +73,8 @@ function parseClass(
   classPart: string,
   startOffset: number,
   activeTheme: Theme,
-  ignoredModifiers: readonly string[]
+  ignoredModifiers: readonly string[],
+  options: ClassOptions
 ): ClassToken[] {
   const syntax = readClassSyntax(classPart);
   if (!syntax) return [];
@@ -109,7 +122,7 @@ function parseClass(
   };
 
   const baseClass = classPart.slice(baseStart, baseEnd);
-  const baseResult = resolveBaseClass(activeTheme, baseClass);
+  const baseResult = resolveBaseClass(activeTheme, baseClass, options.collections ?? defaultCollections);
   const styledBase = baseResult.config && baseResult.config.enabled !== false;
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
@@ -117,10 +130,11 @@ function parseClass(
     const prefix = classPart.slice(start, part.end);
     const result = resolvePrefix(activeTheme, prefix, ignoredModifiers);
     if (result.config && result.config.enabled !== false) {
-      const end = i < parts.length - 2 || styledBase ? part.end + 1 : baseEnd;
+      const end = options.mode === 'prefix' || i < parts.length - 2 || styledBase ? part.end + 1 : baseEnd;
       emit(start, end, prefix, result.themeKey, result.config);
     }
   }
-  if (styledBase && baseResult.config) emit(baseStart, baseEnd, baseClass, baseResult.themeKey, baseResult.config);
+  if (styledBase && baseResult.config)
+    emit(baseStart, baseEnd, baseResult.rangeKey ?? baseClass, baseResult.themeKey, baseResult.config);
   return tokens;
 }

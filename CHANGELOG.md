@@ -4,6 +4,13 @@ All notable changes to the "tailwind-rainbow" extension will be documented in th
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Add `tailwindRainbow.mode` with `class` (default) and `prefix` coloring modes. Explicit base, collection and important-marker styles remain independent.
+- Add 15 predefined collections following Tailwind documentation categories, configurable collection arrays and per-theme collection styles. Arrays replace a predefined definition or add a custom one; empty arrays empty it.
+
 ## [0.3.0] - 2026-11-04
 
 ### Added

@@ -23,7 +23,10 @@ export class TokenizerService {
   }
 
   processClassContent(content: string, startOffset: number, activeTheme: Theme): ClassToken[] {
-    return parseClassContent(content, startOffset, activeTheme, this.configManager.getIgnoredPrefixModifiers());
+    return parseClassContent(content, startOffset, activeTheme, this.configManager.getIgnoredPrefixModifiers(), {
+      mode: this.configManager.get('mode'),
+      collections: this.configManager.getCollectionMatcher(),
+    });
   }
 
   private processTemplateContent(content: string, startOffset: number, activeTheme: Theme): ClassToken[] {

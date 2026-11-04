@@ -47,6 +47,9 @@ export class ThemeService {
         important: { ...baseTheme.important, ...theme.important },
         prefix: { ...baseTheme.prefix, ...theme.prefix },
         base: { ...baseTheme.base, ...theme.base },
+        ...((baseTheme.collections || theme.collections) && {
+          collections: { ...baseTheme.collections, ...theme.collections },
+        }),
       };
 
       this.themeRegistry.set(name, mergedTheme);

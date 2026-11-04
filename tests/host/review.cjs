@@ -6,12 +6,13 @@ const { TokenizerService } = require('../../out/services/tokenizer.js');
 const { ExtensionService } = require('../../out/services/extension.js');
 const { ThemeService } = require('../../out/services/theme.js');
 const { defaultTheme } = require('../../out/themes/default.js');
+const { ConfigurationManager } = require('../../out/services/config.js');
 
 exports.run = async () => {
   const results = [];
   const config = vscode.workspace.getConfiguration('tailwindRainbow');
   const originals = Object.fromEntries(
-    ['enabled', 'theme', 'themes'].map((key) => [key, config.inspect(key)?.globalValue])
+    ['enabled', 'theme', 'themes', 'mode', 'collections'].map((key) => [key, config.inspect(key)?.globalValue])
   );
   const update = (key, value) => config.update(key, value, vscode.ConfigurationTarget.Global);
   const tokenizer = new TokenizerService();
@@ -20,6 +21,8 @@ exports.run = async () => {
     await update('enabled', true);
     await update('theme', 'default');
     await update('themes', {});
+    await update('mode', 'class');
+    await update('collections', {});
     for (const [name, content, language, expected] of [
       ['ordinary string', 'const message = "hover:hello-world";', 'typescript', []],
       ['ordinary template', 'const message = `hover:hello-world`;', 'typescript', []],
@@ -117,6 +120,115 @@ exports.run = async () => {
       results.push(name);
     }
 
+    const collectionTheme = {
+      ...defaultTheme,
+      collections: {
+        spacing: { color: '#112233' },
+        buttons: { color: '#445566' },
+        layout: { color: '#778899' },
+        effects: { color: '#AABBCC' },
+      },
+    };
+    for (const [name, mode, definitions, value, activeTheme, expected] of [
+      [
+        'prefix mode',
+        'prefix',
+        {},
+        'sm:hover:!p-4',
+        defaultTheme,
+        [
+          ['sm', 'sm:', 0, 3],
+          ['hover', 'hover:', 3, 9],
+          ['important', '!', 9, 10],
+        ],
+      ],
+      [
+        'prefix collection styling',
+        'prefix',
+        {},
+        'hover:p-(--gap)!',
+        collectionTheme,
+        [
+          ['hover', 'hover:', 0, 6],
+          ['collection:spacing', 'p-(--gap)', 6, 15],
+          ['important', '!', 15, 16],
+        ],
+      ],
+      [
+        'v3 important collection styling',
+        'prefix',
+        {},
+        'hover:!p-4',
+        collectionTheme,
+        [
+          ['hover', 'hover:', 0, 6],
+          ['important', '!', 6, 7],
+          ['collection:spacing', 'p-4', 7, 10],
+        ],
+      ],
+      [
+        'custom collection',
+        'prefix',
+        { buttons: ['btn', 'btn-*'] },
+        'hover:btn-primary',
+        collectionTheme,
+        [
+          ['hover', 'hover:', 0, 6],
+          ['collection:buttons', 'btn-primary', 6, 17],
+        ],
+      ],
+      [
+        'collection replacement',
+        'prefix',
+        { spacing: ['px-*'] },
+        'p-4 px-2',
+        collectionTheme,
+        [['collection:spacing', 'px-2', 4, 8]],
+      ],
+      ['empty collection', 'prefix', { spacing: [] }, 'p-4', collectionTheme, []],
+      ['default display category', 'prefix', {}, 'flex', collectionTheme, [['collection:layout', 'flex', 0, 4]]],
+      [
+        'predefined category boundary',
+        'prefix',
+        {},
+        'text-shadow-sm',
+        collectionTheme,
+        [['collection:effects', 'text-shadow-sm', 0, 14]],
+      ],
+      [
+        'explicit base priority',
+        'prefix',
+        {},
+        'p-4',
+        { ...collectionTheme, base: { 'p-*': { color: '#123456' } } },
+        [['p-4', 'p-4', 0, 3]],
+      ],
+      ['restored class mode', 'class', {}, 'hover:p-4', defaultTheme, [['hover', 'hover:p-4', 0, 9]]],
+    ]) {
+      await update('mode', mode);
+      await update('collections', definitions);
+      ConfigurationManager.getInstance().reloadConfiguration();
+      const source = `😀\r\n<div class='${value}'></div>`;
+      const offset = source.indexOf(value);
+      const document = await vscode.workspace.openTextDocument({ content: source, language: 'html' });
+      const editor = await vscode.window.showTextDocument(document);
+      const actual = [...tokenizer.findClassRanges(editor, activeTheme)]
+        .flatMap(([key, entry]) =>
+          entry.ranges.map((range) => [
+            key,
+            document.getText(range),
+            document.offsetAt(range.start) - offset,
+            document.offsetAt(range.end) - offset,
+          ])
+        )
+        .sort((a, b) => a[2] - b[2] || a[3] - b[3]);
+      assert.deepEqual(actual, expected, name);
+      results.push(name);
+    }
+    await update('mode', 'class');
+    await update('collections', {});
+    ConfigurationManager.getInstance().reloadConfiguration();
+
     const document = await vscode.workspace.openTextDocument({
       content: '<div class="hover:flex"></div>',
       language: 'html',
@@ -155,12 +267,15 @@ exports.run = async () => {
     results.push('re-enabled decorations');
 
     const themes = new ThemeService();
-    const registered = { prefix: { hover: { color: '#112233' } } };
+    const registered = { prefix: { hover: { color: '#112233' } }, collections: { spacing: { color: '#112233' } } };
     themes.registerTheme('review-external', registered);
     await update('theme', 'review-external');
-    await update('themes', { 'review-external': { prefix: { hover: { color: '#445566' } } } });
+    await update('themes', {
+      'review-external': { prefix: { hover: { color: '#445566' } }, collections: { spacing: { color: '#445566' } } },
+    });
     themes.updateActiveTheme();
     assert.equal(themes.getCurrentTheme().prefix.hover.color, '#445566');
+    assert.equal(themes.getCurrentTheme().collections.spacing.color, '#445566');
     await update('themes', {});
     themes.updateActiveTheme();
     assert.deepEqual(themes.getCurrentTheme(), registered);

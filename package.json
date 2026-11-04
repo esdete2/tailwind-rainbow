@@ -147,6 +147,11 @@
                         "900"
                       ],
                       "description": "Font weight for the prefix"
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Enable this style rule. A disabled match suppresses lower-priority rules."
                     }
                   }
                 },
@@ -166,9 +171,16 @@
               "important": {
                 "$ref": "#/properties/tailwindRainbow.themes/additionalProperties/properties/prefix/additionalProperties",
                 "description": "Configuration for important modifier (!)"
+              },
+              "collections": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/properties/tailwindRainbow.themes/additionalProperties/properties/prefix/additionalProperties"
+                },
+                "description": "Styles for predefined and custom collections. Explicit base rules take priority."
               }
             },
-            "description": "Theme configuration with prefix, base, arbitrary, and important sections"
+            "description": "Theme configuration with prefix, base, collections, arbitrary, and important sections"
           },
           "default": {},
           "markdownDescription": "Custom themes or overrides for existing themes. Example:\n```json\n{\n  \"myTheme\": {\n    \"prefix\": {\n      \"hover\": { \"color\": \"#ff0000\", \"enabled\": true }\n    },\n    \"base\": {\n      \"bg-*\": { \"color\": \"#00ff00\", \"enabled\": true }\n    }\n  }\n}\n```"
@@ -282,6 +294,31 @@
             "@apply"
           ],
           "description": "Case-sensitive names for arrays and objects whose values may contain class strings. These names do not authorize unrelated strings in nearby closed expressions."
+        },
+        "tailwindRainbow.mode": {
+          "type": "string",
+          "enum": [
+            "class",
+            "prefix"
+          ],
+          "default": "class",
+          "enumDescriptions": [
+            "Extend the final prefix color over an otherwise unstyled utility.",
+            "Stop prefix colors after their colons; base and collection styles remain independent."
+          ],
+          "description": "Choose whether prefix colors extend onto unstyled utilities."
+        },
+        "tailwindRainbow.collections": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(?:[^\\s*]+|[^\\s*]*-\\*)$"
+            }
+          },
+          "markdownDescription": "Replace a predefined collection or add a custom one using exact class names and literal family patterns ending in `-*`. Arrays replace the full definition; `[]` empties it. Omitted collections keep their predefined contents. Set colors in your theme’s `collections` section."
         }
       }
     }

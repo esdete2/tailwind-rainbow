@@ -29,7 +29,10 @@ interface Theme {
   important?: ClassConfig;
   prefix?: Record<string, ClassConfig>;
   base?: Record<string, ClassConfig>;
+  collections?: Record<string, ClassConfig>;
 }
+
+type HighlightMode = 'class' | 'prefix';
 
 interface ExtensionAPI {
   registerTheme: (name: string, theme: Theme) => void;
