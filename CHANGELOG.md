@@ -4,9 +4,7 @@ All notable changes to the "tailwind-rainbow" extension will be documented in th
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
-Planned for **0.3.0**. This candidate has not been published.
+## [0.3.0] - 2026-11-04
 
 ### Added
 
