@@ -1,0 +1,82 @@
+{
+  "recordedAt": "2026-11-04T22:26:02.672832+00:00",
+  "plan": "20261104-230001-d-ops-utr",
+  "baselineCommit": "48499045515810ee551951a8bc6c4b5548a37c97",
+  "checks": {
+    "strictPassed": 161,
+    "strictFailures": 0,
+    "strictTodos": 0,
+    "host": {
+      "1.96.0": 26,
+      "1.144.0": 26
+    },
+    "legacy": {
+      "1.96.0": 47,
+      "1.144.0": 47
+    },
+    "compile": "passed",
+    "lint": "passed",
+    "format": "passed",
+    "sddLint": "passed",
+    "newReadmeSnippets": 3,
+    "sixLexicalFingerprints": "passed in strict suite",
+    "sixHighlightingFingerprints": "preserved across matching Node/host controls",
+    "priorReportsAndCoreHarnesses": "unchanged",
+    "defaultFeatureSettings": {
+      "mode": "class",
+      "collections": {},
+      "collectionStyles": {}
+    },
+    "enabledOutputFingerprints": "All six match between Node and VS Code for both modes"
+  },
+  "vsix": {
+    "path": ".sdd/tmp/tailwind-rainbow-collections.vsix",
+    "version": "0.3.0",
+    "sha256": "766362743815900d916d57fff36086dc69bbc87fdd3076ef9292b3eb8f4e998b",
+    "bytes": 221351,
+    "productionModules": 21,
+    "entries": [
+      "[Content_Types].xml",
+      "extension.vsixmanifest",
+      "extension/LICENSE.txt",
+      "extension/changelog.md",
+      "extension/docs/collections.md",
+      "extension/example.html",
+      "extension/images/example.png",
+      "extension/images/icon.png",
+      "extension/out/collections.js",
+      "extension/out/extension.js",
+      "extension/out/services/config.js",
+      "extension/out/services/decoration.js",
+      "extension/out/services/extension.js",
+      "extension/out/services/output.js",
+      "extension/out/services/theme.js",
+      "extension/out/services/tokenizer.js",
+      "extension/out/services/tokenizer/classes.js",
+      "extension/out/services/tokenizer/collections.js",
+      "extension/out/services/tokenizer/context.js",
+      "extension/out/services/tokenizer/directives.js",
+      "extension/out/services/tokenizer/document.js",
+      "extension/out/services/tokenizer/ranges.js",
+      "extension/out/services/tokenizer/syntax.js",
+      "extension/out/services/tokenizer/theme.js",
+      "extension/out/services/tokenizer/types.js",
+      "extension/out/services/utils.js",
+      "extension/out/themes/default.js",
+      "extension/out/themes/index.js",
+      "extension/out/themes/synthwave.js",
+      "extension/package.json",
+      "extension/readme.md"
+    ]
+  },
+  "preservedReleasedVsix": {
+    "path": "tailwind-rainbow-0.3.0.vsix",
+    "sha256": "38aff2e84201791b7b584f6e90f2b22bb133543d2c8e32d296607ca94aaf9a38"
+  },
+  "limits": [
+    "macOS only; hosted CI, Linux and Windows were not executed locally.",
+    "Minimum VS Code correctness checked; performance measured in installed 1.144.0 only.",
+    "Family-based collection membership does not validate every Tailwind value or discover project plugins.",
+    "The feature VSIX is an untracked local build at manifest version 0.3.0; no publication, normal-profile installation or issue closure."
+  ]
+}

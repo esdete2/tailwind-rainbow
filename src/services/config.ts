@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+import { type CollectionDefinitions, CollectionMatcher } from './tokenizer/collections';
+
 /**
  * Configuration interface for the extension
  */
@@ -11,6 +13,8 @@ export interface TailwindRainbowConfig {
   maxFileSize: number;
   ignoredPrefixModifiers: string[];
   debug: boolean;
+  mode: HighlightMode;
+  collections: CollectionDefinitions;
 }
 
 /**
@@ -41,6 +45,8 @@ const DEFAULT_CONFIG: TailwindRainbowConfig = {
   maxFileSize: 1_000_000,
   ignoredPrefixModifiers: ['/'],
   debug: false,
+  mode: 'class',
+  collections: {},
 };
 
 /**
@@ -63,6 +69,7 @@ export class ConfigurationManager {
   private cachedClassFunctionsSet: Set<string> = new Set();
   private cachedTemplatePatterns: string[] = [];
   private cachedContextPatterns: string[] = [];
+  private collectionMatcher = new CollectionMatcher();
 
   private constructor() {
     this.config = this.loadConfiguration();
@@ -85,6 +92,10 @@ export class ConfigurationManager {
    */
   public getConfig(): TailwindRainbowConfig {
     return { ...this.config };
+  }
+
+  public getCollectionMatcher(): CollectionMatcher {
+    return this.collectionMatcher;
   }
 
   /**
@@ -207,6 +218,13 @@ export class ConfigurationManager {
         DEFAULT_CONFIG.ignoredPrefixModifiers
       ),
       debug: workspaceConfig.get<boolean>('debug', DEFAULT_CONFIG.debug),
+      mode: workspaceConfig.get<string>('mode') === 'prefix' ? 'prefix' : 'class',
+      collections: Object.fromEntries(
+        Object.entries(workspaceConfig.get<Record<string, unknown>>('collections') ?? {}).map(([name, patterns]) => [
+          name,
+          Array.isArray(patterns) ? patterns.filter((pattern): pattern is string => typeof pattern === 'string') : [],
+        ])
+      ),
     };
   }
 
@@ -241,6 +259,7 @@ export class ConfigurationManager {
    * Updates cached computed values for performance
    */
   private updateCachedValues(): void {
+    this.collectionMatcher = new CollectionMatcher(this.config.collections);
     this.cachedLowerCaseIdentifiers = this.config.classIdentifiers.map((id) => id.toLowerCase());
     this.cachedClassFunctionsSet = new Set(this.config.classFunctions);
     this.cachedTemplatePatterns = [...this.config.templatePatterns];

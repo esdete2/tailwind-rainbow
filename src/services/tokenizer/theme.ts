@@ -1,6 +1,9 @@
+import { type CollectionMatcher, defaultCollections } from './collections';
+
 interface ThemeMatch {
   config: ClassConfig | null;
   themeKey: string;
+  rangeKey?: string;
 }
 
 function removeIgnoredModifiers(prefix: string, modifiers: readonly string[]): string {
@@ -36,9 +39,9 @@ export function lookupPrefix(theme: Theme, prefix: string, ignoredModifiers: rea
 }
 
 /** Base rules use their own namespace: special arbitrary, exact, arbitrary value, then first-component wildcard. */
-export function lookupBaseClass(theme: Theme, className: string): ClassConfig | null {
+function lookupBaseRule(theme: Theme, className: string): ClassConfig | null {
   if (className === 'arbitrary' && theme.arbitrary) return theme.arbitrary;
-  if (theme.base?.[className]) return theme.base[className];
+  if (theme.base && Object.hasOwn(theme.base, className) && theme.base[className]) return theme.base[className];
   if (className.startsWith('[') && className.endsWith(']') && theme.arbitrary) return theme.arbitrary;
   if (theme.base) {
     const parts = className.split('-');
@@ -50,6 +53,18 @@ export function lookupBaseClass(theme: Theme, className: string): ClassConfig | 
   return null;
 }
 
+/** Explicit base rules precede collections; disabled matches remain authoritative. */
+export function lookupBaseClass(
+  theme: Theme,
+  className: string,
+  collections: CollectionMatcher = defaultCollections
+): ClassConfig | null {
+  return (
+    lookupBaseRule(theme, className) ??
+    (theme.collections ? (collections.lookup(className, theme.collections)?.config ?? null) : null)
+  );
+}
+
 /** Fragment resolution maps bracketed syntax to the arbitrary rule before raw exact lookup. */
 export function resolvePrefix(theme: Theme, prefix: string, ignoredModifiers: readonly string[]): ThemeMatch {
   if (prefix.startsWith('[') && prefix.endsWith(']')) {
@@ -59,12 +74,21 @@ export function resolvePrefix(theme: Theme, prefix: string, ignoredModifiers: re
   return { config: lookupPrefix(theme, prefix, ignoredModifiers), themeKey: prefix };
 }
 
-export function resolveBaseClass(theme: Theme, className: string): ThemeMatch {
+export function resolveBaseClass(
+  theme: Theme,
+  className: string,
+  collections: CollectionMatcher = defaultCollections
+): ThemeMatch {
   if (className.startsWith('[') && className.endsWith(']')) {
-    const config = lookupBaseClass(theme, 'arbitrary');
+    const config = lookupBaseRule(theme, 'arbitrary');
     return config && config.enabled !== false
       ? { config, themeKey: 'arbitrary' }
       : { config: null, themeKey: className };
   }
-  return { config: lookupBaseClass(theme, className), themeKey: className };
+  const config = lookupBaseRule(theme, className);
+  if (config || !theme.collections) return { config, themeKey: className };
+  const match = collections.lookup(className, theme.collections);
+  return match
+    ? { config: match.config, themeKey: `collection:${match.name}`, rangeKey: `collection:${match.name}` }
+    : { config: null, themeKey: className };
 }

@@ -18,6 +18,7 @@ const result = spawnSync(
     fileURLToPath(new URL('./extension.test.mjs', import.meta.url)),
     fileURLToPath(new URL('./review.test.mjs', import.meta.url)),
     fileURLToPath(new URL('./compatibility.test.mjs', import.meta.url)),
+    fileURLToPath(new URL('./collections.test.mjs', import.meta.url)),
   ],
   {
     stdio: 'inherit',

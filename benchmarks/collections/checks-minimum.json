@@ -1,0 +1,33 @@
+{
+  "vscode": "1.96.0",
+  "node": "v20.18.1",
+  "results": [
+    "ordinary string",
+    "ordinary template",
+    "CSS block comment",
+    "SCSS line comment",
+    "leading important compatibility",
+    "utility collection",
+    "v3 important placement",
+    "v4 important placement",
+    "v3 important fallback",
+    "v4 important fallback",
+    "typed variable value",
+    "protected literal important",
+    "prefix mode",
+    "prefix collection styling",
+    "v3 important collection styling",
+    "custom collection",
+    "collection replacement",
+    "empty collection",
+    "default display category",
+    "predefined category boundary",
+    "explicit base priority",
+    "restored class mode",
+    "untitled decorations",
+    "disabled decorations",
+    "re-enabled decorations",
+    "registered theme and override removal"
+  ],
+  "passed": 26
+}

@@ -6,4 +6,4 @@ export const getThemeConfigForPrefix = (activeTheme: Theme, prefix: string) =>
   lookupPrefix(activeTheme, prefix, ConfigurationManager.getInstance().getIgnoredPrefixModifiers());
 
 export const getThemeConfigForBaseClass = (activeTheme: Theme, className: string) =>
-  lookupBaseClass(activeTheme, className);
+  lookupBaseClass(activeTheme, className, ConfigurationManager.getInstance().getCollectionMatcher());

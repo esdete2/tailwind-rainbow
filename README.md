@@ -105,6 +105,10 @@ The extension follows a specific lookup order for maximum flexibility:
 1. Arbitrary color (for bracket-enclosed classes)
 2. Exact match in base section
 3. Wildcard pattern match in base section
+4. Matching styled collection
+
+Disabled matching rules suppress lower-priority rules. Prefix colors can still
+extend over an unstyled utility in `class` mode.
 
 ## Supported File Types
 
@@ -125,6 +129,103 @@ Requires **VS Code 1.96 or newer**.
 If you have a downloaded `.vsix` file, open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`), run **Extensions: Install from VSIX…** and select the file. Reload VS Code if prompted.
 
 ## Configuration
+
+### Coloring Mode
+
+```json
+{
+  "tailwindRainbow.mode": "prefix"
+}
+```
+
+- `class` (default): the final prefix color extends over an otherwise unstyled utility.
+- `prefix`: each prefix color stops after its colon. Utilities keep their normal editor color unless a base or collection rule styles them.
+
+Base/collection colors and the `!` important-marker style work independently in both modes.
+
+### Collections
+
+Collections let one theme rule style a related set of utilities. Their names follow
+Tailwind's documentation categories:
+
+| Collection             | Examples                                                      |
+| ---------------------- | ------------------------------------------------------------- |
+| `layout`               | `flex`, `grid`, `hidden`, `absolute`, `overflow-hidden`       |
+| `flexboxGrid`          | `flex-col`, `grid-cols-3`, `gap-4`, `items-center`            |
+| `spacing`              | `p-4`, `px-2`, `m-auto`, `-mt-2`, `space-x-4`                 |
+| `sizing`               | `w-full`, `min-w-0`, `h-8`, `size-4`                          |
+| `typography`           | `text-lg`, `text-red-500`, `font-bold`, `leading-6`           |
+| `backgrounds`          | `bg-red-500`, `bg-cover`, `from-blue-500`                     |
+| `borders`              | `border`, `border-red-500`, `rounded-lg`, `ring-2`            |
+| `effects`              | `shadow-md`, `text-shadow-sm`, `opacity-50`, `mask-linear-45` |
+| `filters`              | `blur-sm`, `brightness-125`, `backdrop-blur-sm`               |
+| `tables`               | `table-auto`, `border-collapse`, `border-spacing-2`           |
+| `transitionsAnimation` | `transition-colors`, `duration-300`, `animate-spin`           |
+| `transforms`           | `rotate-45`, `-translate-x-2`, `scale-95`                     |
+| `interactivity`        | `cursor-pointer`, `pointer-events-none`, `select-none`        |
+| `svg`                  | `fill-red-500`, `stroke-2`                                    |
+| `accessibility`        | `forced-color-adjust-none`                                    |
+
+Assign colors inside a theme. Built-in themes leave collection styles empty:
+
+```json
+{
+  "tailwindRainbow.themes": {
+    "default": {
+      "collections": {
+        "spacing": { "color": "#B084EB" },
+        "flexboxGrid": { "color": "#61AFEF" }
+      }
+    }
+  }
+}
+```
+
+Define a custom collection or replace a predefined one with an array:
+
+```json
+{
+  "tailwindRainbow.collections": {
+    "buttons": ["btn", "btn-*"],
+    "spacing": ["p-*", "px-*", "m-*"],
+    "filters": []
+  },
+  "tailwindRainbow.themes": {
+    "default": {
+      "collections": {
+        "buttons": { "color": "#61AFEF" },
+        "spacing": { "color": "#B084EB" }
+      }
+    }
+  }
+}
+```
+
+Arrays replace the full definition. In this example, `spacing` no longer includes
+`py-*` or negative margins, and `filters` is empty. Omitted names retain their
+predefined contents. Definitions apply across themes; colors belong to each theme.
+
+Entries are exact class names or literal prefixes ending in `-*`. For example,
+`btn-*`, `grid-cols-*` and `-mx-*` work; `p*-*`, `*` and regular expressions do not.
+An exact entry is needed for `btn` itself. Values inside brackets or parentheses
+remain part of the utility, and `!` is handled separately.
+
+Existing base rules win over collection styles. Among overlapping collections,
+configured definitions are checked in their written order, followed by untouched
+predefined collections. Only collections with a theme style participate; an
+`enabled: false` style stops lower-priority collection rules. Unmodified predefined
+categories use exact names and the most specific family to keep `text-shadow-*`
+in Effects and `border-collapse` in Tables, even if only a broader category is styled.
+
+Collections follow the v4 documentation categories, so bare `flex` and `grid` are
+display utilities in Layout. `sr-only` and `not-sr-only` are also in Layout; v3
+documents them under Accessibility. Recognized v3 spellings remain available.
+Collection matching identifies utility families, not every valid Tailwind value:
+custom utilities, namespaces and unknown families can be assigned explicitly.
+Bare arbitrary properties such as `[padding:1rem]` retain their `arbitrary` style.
+
+See [collection definitions and coverage](docs/collections.md) for the full lists
+and source links.
 
 ### Switching Themes
 
@@ -196,7 +297,16 @@ These lists replace the defaults, so include any existing names you want to keep
 
 ```json
 {
-  "tailwindRainbow.classIdentifiers": ["class", "className", "class:", "className:", "classlist", "classes", "css", "style"],
+  "tailwindRainbow.classIdentifiers": [
+    "class",
+    "className",
+    "class:",
+    "className:",
+    "classlist",
+    "classes",
+    "css",
+    "style"
+  ],
   "tailwindRainbow.classFunctions": ["cn", "clsx", "cva", "classNames", "classList", "twMerge", "tw", "styled", "css"],
   "tailwindRainbow.templatePatterns": ["class", "tw`", "css`", "styled"],
   "tailwindRainbow.contextPatterns": ["variants", "cva", "class", "css", "style", "@apply"]

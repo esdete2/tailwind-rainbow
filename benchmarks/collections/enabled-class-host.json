@@ -1,0 +1,457 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-04T22:24:32.666Z",
+  "environment": {
+    "runner": "vscode-extension-host",
+    "node": "v24.22.1",
+    "vscode": "1.144.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3 Max"
+  },
+  "methodology": {
+    "warmups": 3,
+    "samples": 9,
+    "lexical": "TokenizerService.tokenizeDocument(source)",
+    "themedRanges": "TokenizerService.findClassRanges(editor, defaultTheme)",
+    "excluded": [
+      "debounce",
+      "decoration application",
+      "file IO",
+      "document creation",
+      "result fingerprinting"
+    ],
+    "timing": "Individual synchronous calls, not batch averages; empirical p95 is the maximum of nine samples.",
+    "stressLimit": "Repeated-variant corpus is limited to 100k UTF-16 units to bound quadratic overlap work.",
+    "sizeLimit": "Production guard uses UTF-16 source.length; the large Unicode corpus can exceed its nominal limit in UTF-8 bytes."
+  },
+  "productionSha256": {
+    "src/collections.ts": "c561861fb95692acc83ed867379e4d209e875b29dd8c1bab25a6407e7a7e969e",
+    "src/extension.ts": "92fd5dbbf41e1d19270dd766cea7c6b4b47f5466d9c246a4cd9f4c1969c89aaa",
+    "src/services/config.ts": "57005052c0008f0cd83eb9664095815ae2a983997a2f1fd1410d3cd96666e29c",
+    "src/services/decoration.ts": "32e6a422ae6b8add39f239978e0895160f300c85e8540a3cb0a31a5de7c0e76e",
+    "src/services/extension.ts": "8a4a62a8700e51eee90159e2d7b6a42c9042edafb524f3400b63393682ae01f3",
+    "src/services/output.ts": "fb2092baefe9ed1ad6ea082055aacf5c7f06ae027418ec0ed9964bca53b819b1",
+    "src/services/theme.ts": "db619748e2185c1667bec672f4e041eb221022f1ad5587edcd18f99b85e6832e",
+    "src/services/tokenizer.ts": "960e48f24068e96f2d74b4cd58bdd7dcdf59abfcd49fbe43c79ec72b9b73244c",
+    "src/services/tokenizer/classes.ts": "56325f024afac1242705e1ca3cd170625229a84109f07280c7c3cc52e9de74df",
+    "src/services/tokenizer/collections.ts": "5129db9c4205a839789cfd4d1ccf2f48b1b6772f912b8f1efd5522375ba1fbef",
+    "src/services/tokenizer/context.ts": "04155372ab3f309a52e12a6b240530900e5e6dfcd906531c6e23499eca71a914",
+    "src/services/tokenizer/directives.ts": "3218ab32990528a1f75f209f9b55dc7f1f7dda7ff5e1a067a6d65bd1323cf15b",
+    "src/services/tokenizer/document.ts": "24d157b05220be64e70c87455f4390a482fad9108dbec1357aeded2108cd971a",
+    "src/services/tokenizer/ranges.ts": "696d861ce3bbd28550dfc382163ce7c937001ef705608f7f8589d4044f57ff4e",
+    "src/services/tokenizer/syntax.ts": "9b2442b2641dd5d23b3d644c9cd5ca3a34089c7bde0a770b56554a646e0c92af",
+    "src/services/tokenizer/theme.ts": "e3899868399763e595e70fe21a59ba6ee490c058869d4d28162a57adef025c0c",
+    "src/services/tokenizer/types.ts": "b38eb7ce44db728286d814fb6bca22a7fdba11dade543775d969aa3b893ac11e",
+    "src/services/utils.ts": "b57fb4a31b2fe2ab9423ea9fe9db379073343e051258e1d19f66e609ce4ff853",
+    "src/themes/default.ts": "9e03b613de09eff2fbeb5e407efd16da80b028ffaabbef627984c8714b840f98",
+    "src/themes/index.ts": "6b89c69563bb65dc810dd8b59db039818da79a76de20549922eda9238a6a138b",
+    "src/themes/synthwave.ts": "eca9a03a450e766c778c2d5e8f1aa31784da4fc75615bb8c0b95c12a9a112eaa",
+    "src/types.d.ts": "77f2beeadbd72bb1bb6e77c260ab376df26fb027db1453878958a5916007cf6d"
+  },
+  "compiledSha256": {
+    "out/collections.js": "9b39135ad66d3afe2e4ee3cf86c12abd381a38e78015290d1f1e4bdeed04dfeb",
+    "out/extension.js": "5212abe12324a8708774d8648fd53e3ecdf06b2431561c281a3978c2a160281f",
+    "out/services/config.js": "70d79397092f8fa45eea8b7be6b2f8f5feda921bfbd5400003be38e4c22c59cc",
+    "out/services/decoration.js": "2c9cde271358b22c3dae30d4428c2d5cdb8d15eb75133b79be88c83764249772",
+    "out/services/extension.js": "0d1c9aecd2ccaef96d63826480311fd43c3fc999f3af6890a38051d0613f0285",
+    "out/services/output.js": "2416c8febcc138c3ce9e4a3de84bb12fd92dd882da63e081a51414d90f22e6b4",
+    "out/services/theme.js": "0c362f44fd1d7b8516fdd95d615b7d7dc6750689f5051ad10a27f04390e24d93",
+    "out/services/tokenizer.js": "a8e54c111941018c47cc27d28a73e1684681fa1923631fc95773ef4ec97c433d",
+    "out/services/tokenizer/classes.js": "5aa7f37d7a68bc2dc33180ee968d092b4016aa5d42ba0bce1a4bec6567e995ae",
+    "out/services/tokenizer/collections.js": "de0c9c590cbb47cd57af94e00d60ca430029ca96badf4951ede913987c975843",
+    "out/services/tokenizer/context.js": "397b59d7d1ef59480c59e23fb659177c7cd22f3cdb5a2a8fe2faf2770efa821e",
+    "out/services/tokenizer/directives.js": "97e630c143dbed7cf2319e83fe3a7e2af3e46d5f1f1614256e3561db13b3da1b",
+    "out/services/tokenizer/document.js": "9c93c5c3aa4909ffbc5f24eebf2a77d2737a4311b2d02a22b6484c63c3a95035",
+    "out/services/tokenizer/ranges.js": "12666ab038847c9961098f9bd3e6168c9e2e72af0cfd9bdec2fabfa5e9ced1d8",
+    "out/services/tokenizer/syntax.js": "810dfac877092fa3ebb671c1858daac54ceb208ab1829f9d90269c2fcdb5c98f",
+    "out/services/tokenizer/theme.js": "22fafe5c285e468dae8c5ede49077e7a689422f7cad09081d22c23ead047096a",
+    "out/services/tokenizer/types.js": "b0d2bc4142d0c62d43f996aaeb64f22c4889ac853f8a3765758b505d972d0149",
+    "out/services/utils.js": "bffe7a3d88827441b2624d7d838d5eb951bf72ef1082b59d010715da56e4de95",
+    "out/themes/default.js": "fe98675336166251297aa32812a277ac47f226628dc52335ed878eea83ae4241",
+    "out/themes/index.js": "b270314d71f62489d2d531926445860c04d3608cd17aaf7da2db735bc4be40a9",
+    "out/themes/synthwave.js": "6e0548794759205a620628bd16ec6b298f45b232b4d76f67ad185310626ce963"
+  },
+  "harnessSha256": {
+    "corpus.mjs": "1698c8af733b99c5c07aca78df254f8589e84bde41c0074c58e83f1e16327e18",
+    "measure.mjs": "815497b3546dbabf292f268c8e6c4980abf74cef6a6046efde6a3d312e0b3212",
+    "../support/vscode.cjs": "ea1382aa88ce3f40e42e27d211a90cf046aef451ab4ff47fd7b7d8d484c04985"
+  },
+  "settings": {
+    "maxFileSize": 1000000,
+    "classIdentifiers": [
+      "class",
+      "className",
+      "class:",
+      "className:",
+      "classlist",
+      "classes",
+      "css",
+      "style"
+    ],
+    "classFunctions": [
+      "cn",
+      "clsx",
+      "cva",
+      "classNames",
+      "classList",
+      "classnames",
+      "twMerge",
+      "tw",
+      "cls",
+      "cc",
+      "cx",
+      "classname",
+      "styled",
+      "css",
+      "theme",
+      "variants"
+    ],
+    "templatePatterns": [
+      "class",
+      "${",
+      "tw`",
+      "css`",
+      "styled"
+    ],
+    "contextPatterns": [
+      "variants",
+      "cva",
+      "class",
+      "css",
+      "style",
+      "@apply"
+    ],
+    "ignoredPrefixModifiers": [
+      "group",
+      "peer",
+      "has",
+      "in",
+      "not"
+    ]
+  },
+  "themeSha256": "65b31c4a31515f42b78454f8a5bf6d36956defcefeddb61e776bddda398a9890",
+  "results": [
+    {
+      "name": "html-small",
+      "language": "html",
+      "utf16Units": 10000,
+      "utf8Bytes": 10648,
+      "corpusSha256": "204e2ddac5f23606c781c9c7d1970e9a9c2c9d845c4d71eb39a5bf8b4f5601a0",
+      "outputSha256": "2b9babe30eb36daf066df7b607b946bf7b1120db9ef72228665f58a3a5f18cd2",
+      "lexical": {
+        "outputCount": 81,
+        "durationsMs": [
+          0.0600409999999556,
+          0.051916000000005624,
+          0.048499999999989996,
+          0.05020799999999781,
+          0.050082999999972344,
+          0.049583000000097854,
+          0.04887500000006639,
+          0.055375000000026375,
+          0.04929200000003675
+        ],
+        "minMs": 0.048499999999989996,
+        "medianMs": 0.050082999999972344,
+        "p95Ms": 0.0600409999999556,
+        "maxMs": 0.0600409999999556
+      },
+      "themedRanges": {
+        "outputCount": 1053,
+        "durationsMs": [
+          5.687999999999988,
+          0.7566659999999956,
+          0.7633329999999887,
+          0.7413330000000542,
+          0.7872079999999642,
+          0.7269999999999754,
+          0.7145000000000437,
+          0.686040999999932,
+          0.6779999999999973
+        ],
+        "minMs": 0.6779999999999973,
+        "medianMs": 0.7413330000000542,
+        "p95Ms": 5.687999999999988,
+        "maxMs": 5.687999999999988
+      }
+    },
+    {
+      "name": "html-medium",
+      "language": "html",
+      "utf16Units": 100000,
+      "utf8Bytes": 106552,
+      "corpusSha256": "7d5d5d3a4aec84fb47c967c1551f80defd4217b46a28f52295718079d24f2144",
+      "outputSha256": "aa70aa32850a02f0301a47cc7a137ea1f7ad63c012bfb5bb41a745ec5bf9ee65",
+      "lexical": {
+        "outputCount": 819,
+        "durationsMs": [
+          0.23970799999995052,
+          0.2314169999999649,
+          0.2491659999999456,
+          0.2337079999999787,
+          0.2300000000000182,
+          0.24137500000006185,
+          0.24141599999995833,
+          0.23966699999994034,
+          0.25820899999996527
+        ],
+        "minMs": 0.2300000000000182,
+        "medianMs": 0.23970799999995052,
+        "p95Ms": 0.25820899999996527,
+        "maxMs": 0.25820899999996527
+      },
+      "themedRanges": {
+        "outputCount": 10647,
+        "durationsMs": [
+          7.892875000000004,
+          8.832750000000033,
+          7.1746669999999995,
+          7.37866699999995,
+          7.850458000000003,
+          7.924249999999915,
+          8.11591599999997,
+          8.47441600000002,
+          7.678207999999927
+        ],
+        "minMs": 7.1746669999999995,
+        "medianMs": 7.892875000000004,
+        "p95Ms": 8.832750000000033,
+        "maxMs": 8.832750000000033
+      }
+    },
+    {
+      "name": "tsx-medium",
+      "language": "typescriptreact",
+      "utf16Units": 100000,
+      "utf8Bytes": 105592,
+      "corpusSha256": "e5dbe6032d882ddf240c2665db4c4c1e537c54a56861598be636b1decdc67d20",
+      "outputSha256": "08e4d92f245225a5d8b176488a7e48f38f67a65ac3c4d35a243cd1e17596f6a3",
+      "lexical": {
+        "outputCount": 699,
+        "durationsMs": [
+          0.17633299999999963,
+          0.17641600000001745,
+          0.1760420000000522,
+          0.1760829999999487,
+          0.20087499999999636,
+          0.17462499999999181,
+          0.20420799999999417,
+          0.18091600000002472,
+          0.18758300000001782
+        ],
+        "minMs": 0.17462499999999181,
+        "medianMs": 0.17641600000001745,
+        "p95Ms": 0.20420799999999417,
+        "maxMs": 0.20420799999999417
+      },
+      "themedRanges": {
+        "outputCount": 9087,
+        "durationsMs": [
+          7.398374999999987,
+          6.494291999999973,
+          6.221250000000055,
+          6.160750000000007,
+          6.52212499999996,
+          6.440375000000017,
+          7.550624999999968,
+          6.412541000000033,
+          6.333082999999988
+        ],
+        "minMs": 6.160750000000007,
+        "medianMs": 6.440375000000017,
+        "p95Ms": 7.550624999999968,
+        "maxMs": 7.550624999999968
+      }
+    },
+    {
+      "name": "css-medium",
+      "language": "css",
+      "utf16Units": 100000,
+      "utf8Bytes": 100000,
+      "corpusSha256": "921bd4e72f27c3058cc7f7a2ee489d4b4b1accaa7d924fafb887b1f322608668",
+      "outputSha256": "4f86f364d6b9cb02fe6014db9b2e7ddd91e1a59289a127f1e89210012a170426",
+      "lexical": {
+        "outputCount": 877,
+        "durationsMs": [
+          0.978708000000097,
+          0.9747919999999795,
+          1.0196670000000267,
+          0.9819999999999709,
+          0.9901669999999285,
+          0.9748329999999896,
+          0.984375,
+          0.9938329999999951,
+          0.9851250000001528
+        ],
+        "minMs": 0.9747919999999795,
+        "medianMs": 0.984375,
+        "p95Ms": 1.0196670000000267,
+        "maxMs": 1.0196670000000267
+      },
+      "themedRanges": {
+        "outputCount": 11401,
+        "durationsMs": [
+          7.988542000000052,
+          9.866416999999956,
+          7.770958999999948,
+          7.869500000000016,
+          7.629041000000143,
+          7.655666999999994,
+          8.41966699999989,
+          7.91254200000003,
+          7.973165999999992
+        ],
+        "minMs": 7.629041000000143,
+        "medianMs": 7.91254200000003,
+        "p95Ms": 9.866416999999956,
+        "maxMs": 9.866416999999956
+      }
+    },
+    {
+      "name": "html-large",
+      "language": "html",
+      "utf16Units": 950000,
+      "utf8Bytes": 1012288,
+      "corpusSha256": "89bac3bdda7d102e9a1a17fd2b1dfdb92a94ca0b1cafebd37d8d78b21fe30152",
+      "outputSha256": "4525fab2e7af85d969f1de9bc440205164bf115f5741f11a78090bab5fab4771",
+      "lexical": {
+        "outputCount": 7786,
+        "durationsMs": [
+          2.089958000000024,
+          2.0869579999998678,
+          2.0555839999999534,
+          7.558042000000114,
+          2.1243750000001,
+          2.2631249999999454,
+          2.1275829999999587,
+          2.1207919999999376,
+          2.1122079999997823
+        ],
+        "minMs": 2.0555839999999534,
+        "medianMs": 2.1207919999999376,
+        "p95Ms": 7.558042000000114,
+        "maxMs": 7.558042000000114
+      },
+      "themedRanges": {
+        "outputCount": 101218,
+        "durationsMs": [
+          86.74170800000002,
+          90.20512499999995,
+          90.8675830000002,
+          90.35666600000013,
+          89.58470899999975,
+          90.57437500000015,
+          90.60229200000003,
+          95.24491699999999,
+          88.1390409999999
+        ],
+        "minMs": 86.74170800000002,
+        "medianMs": 90.35666600000013,
+        "p95Ms": 95.24491699999999,
+        "maxMs": 95.24491699999999
+      }
+    },
+    {
+      "name": "repeated-variants",
+      "language": "html",
+      "utf16Units": 100000,
+      "utf8Bytes": 103472,
+      "corpusSha256": "5d71c4a7c9cb7e17439373db053f4f7c7e5034a181c2ec3e88bbdff54bf9dc66",
+      "outputSha256": "6c4c944515a1df051877fd2eb268367ccdccf2676a0325ced1f5d183d74a3f3e",
+      "lexical": {
+        "outputCount": 434,
+        "durationsMs": [
+          0.1421660000000884,
+          0.14400000000023283,
+          0.14362500000015643,
+          0.14170800000010786,
+          0.14125000000012733,
+          0.14200000000028012,
+          0.1417500000002292,
+          0.15195800000037707,
+          0.14533299999993687
+        ],
+        "minMs": 0.14125000000012733,
+        "medianMs": 0.1421660000000884,
+        "p95Ms": 0.15195800000037707,
+        "maxMs": 0.15195800000037707
+      },
+      "themedRanges": {
+        "outputCount": 10416,
+        "durationsMs": [
+          7.543666999999914,
+          7.557166999999936,
+          8.272999999999683,
+          7.3237920000001395,
+          6.931999999999789,
+          7.9284999999999854,
+          7.404833000000053,
+          8.301500000000033,
+          7.400583000000097
+        ],
+        "minMs": 6.931999999999789,
+        "medianMs": 7.543666999999914,
+        "p95Ms": 8.301500000000033,
+        "maxMs": 8.301500000000033
+      }
+    }
+  ],
+  "collectionSettings": {
+    "mode": "class",
+    "definitions": {
+      "buttons": [
+        "btn",
+        "btn-*"
+      ]
+    },
+    "styles": {
+      "layout": {
+        "color": "#000001"
+      },
+      "flexboxGrid": {
+        "color": "#000002"
+      },
+      "spacing": {
+        "color": "#000003"
+      },
+      "sizing": {
+        "color": "#000004"
+      },
+      "typography": {
+        "color": "#000005"
+      },
+      "backgrounds": {
+        "color": "#000006"
+      },
+      "borders": {
+        "color": "#000007"
+      },
+      "effects": {
+        "color": "#000008"
+      },
+      "filters": {
+        "color": "#000009"
+      },
+      "tables": {
+        "color": "#00000a"
+      },
+      "transitionsAnimation": {
+        "color": "#00000b"
+      },
+      "transforms": {
+        "color": "#00000c"
+      },
+      "interactivity": {
+        "color": "#00000d"
+      },
+      "svg": {
+        "color": "#00000e"
+      },
+      "accessibility": {
+        "color": "#00000f"
+      }
+    }
+  },
+  "collectionHarnessSha256": "25f061737b3232c143c01f3c9a1aceff46050cf630da1f973ea90b383933d4bc"
+}
